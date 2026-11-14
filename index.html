@@ -143,12 +143,22 @@
             </button>
           </div>
 
-          <!-- Listing Nama Santri Berdasarkan Sub-Tab Aktif -->
-          <div class="bg-slate-50/80 border border-slate-200/70 rounded-2xl p-3 space-y-2">
+          <!-- Listing Nama Santri Berdasarkan Sub-Tab Aktif dengan Kotak Pencarian -->
+          <div class="bg-slate-50/80 border border-slate-200/70 rounded-2xl p-3 space-y-2.5">
             <div class="flex items-center justify-between">
               <span id="halaqah-cat-list-title" class="text-[11px] font-bold text-slate-700">Daftar Santri Kategori: Terbata-bata</span>
-              <span class="text-[9px] text-slate-400">Klik nama santri untuk input setoran/materi</span>
+              <span class="text-[9px] text-slate-400">Klik nama santri untuk input setoran</span>
             </div>
+            
+            <!-- Kolom Pencarian Nama Santri di Tab Halaqah -->
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
+              <input id="search-halaqah-santri-input" type="text" oninput="onSearchHalaqahSantriInput(this.value)" placeholder="Cari nama santri atau NIS dalam kategori ini..." class="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-16 py-2 text-xs text-slate-800 font-semibold focus:outline-none focus:border-teal-600 transition">
+              <button type="button" id="btn-clear-search-halaqah" onclick="clearSearchHalaqahSantri()" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-500 hover:text-rose-600 bg-slate-200/70 hover:bg-rose-50 px-2 py-0.5 rounded-md transition">
+                Reset
+              </button>
+            </div>
+
             <div id="halaqah-category-students-list" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-44 overflow-y-auto pr-1">
               <!-- Diisi otomatis via JS -->
             </div>
@@ -1764,6 +1774,27 @@
       }
     }
 
+    let searchHalaqahQuery = '';
+
+    function onSearchHalaqahSantriInput(val) {
+      searchHalaqahQuery = String(val || '').trim().toLowerCase();
+      const clearBtn = document.getElementById('btn-clear-search-halaqah');
+      if (clearBtn) {
+        if (searchHalaqahQuery) clearBtn.classList.remove('hidden');
+        else clearBtn.classList.add('hidden');
+      }
+      renderHalaqahCategoryTabs();
+    }
+
+    function clearSearchHalaqahSantri() {
+      searchHalaqahQuery = '';
+      const inp = document.getElementById('search-halaqah-santri-input');
+      if (inp) inp.value = '';
+      const clearBtn = document.getElementById('btn-clear-search-halaqah');
+      if (clearBtn) clearBtn.classList.add('hidden');
+      renderHalaqahCategoryTabs();
+    }
+
     function renderHalaqahCategoryTabs() {
       const terbataList = studentsList.filter(s => s.category === 'Terbata-bata');
       const lancarList = studentsList.filter(s => s.category === 'Lancar');
@@ -1802,15 +1833,19 @@
       const titleEl = document.getElementById('halaqah-cat-list-title');
       if (titleEl) titleEl.innerText = `Daftar Santri Halaqah: ${selectedHalaqahCategoryTab}`;
 
-      const filtered = studentsList.filter(s => s.category === selectedHalaqahCategoryTab);
+      let filtered = studentsList.filter(s => s.category === selectedHalaqahCategoryTab);
 
-      // Sinkronkan dropdown pilih santri agar hanya menampilkan santri di kategori tab aktif
+      // Sinkronkan dropdown pilih santri agar hanya menampilkan santri di kategori tab aktif (serta ikuti pencarian jika ada)
+      const dropdownFiltered = searchHalaqahQuery
+        ? filtered.filter(s => (s.full_name || '').toLowerCase().includes(searchHalaqahQuery) || (s.nis || '').toLowerCase().includes(searchHalaqahQuery))
+        : filtered;
+
       const selHalaqah = document.getElementById('halaqah-student-select');
       const prevSelected = selHalaqah?.value || "";
       if (selHalaqah) {
         selHalaqah.innerHTML = `<option value="">-- Pilih Santri (${selectedHalaqahCategoryTab}) --</option>` +
-          filtered.map(s => `<option value="${s.id}">${s.full_name} (${s.status.toUpperCase()})</option>`).join('');
-        if (filtered.some(s => s.id === prevSelected)) {
+          dropdownFiltered.map(s => `<option value="${s.id}">${s.full_name} (${s.status.toUpperCase()})</option>`).join('');
+        if (dropdownFiltered.some(s => s.id === prevSelected)) {
           selHalaqah.value = prevSelected;
         }
       }
@@ -1822,12 +1857,14 @@
 
       const currentSelectedId = document.getElementById('halaqah-student-select')?.value;
 
-      if (filtered.length === 0) {
-        listEl.innerHTML = `<p class="col-span-full text-xs text-slate-400 italic text-center py-3">Belum ada santri di kategori <b>${selectedHalaqahCategoryTab}</b>.</p>`;
+      if (dropdownFiltered.length === 0) {
+        listEl.innerHTML = searchHalaqahQuery
+          ? `<p class="col-span-full text-xs text-slate-400 italic text-center py-3">Tidak ditemukan santri dengan kata kunci "<b>${searchHalaqahQuery}</b>" di kategori ini.</p>`
+          : `<p class="col-span-full text-xs text-slate-400 italic text-center py-3">Belum ada santri di kategori <b>${selectedHalaqahCategoryTab}</b>.</p>`;
         return;
       }
 
-      listEl.innerHTML = filtered.map(s => {
+      listEl.innerHTML = dropdownFiltered.map(s => {
         const isSelected = (s.id === currentSelectedId);
         return `
           <button type="button" onclick="selectStudentFromHalaqahList('${s.id}')" class="text-left p-2.5 rounded-xl border transition flex items-center justify-between ${
