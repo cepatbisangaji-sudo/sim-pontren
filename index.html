@@ -1176,15 +1176,32 @@
     <!-- Main Container -->
     <main class="max-w-md mx-auto px-4 -mt-5 space-y-3.5">
       
-      <!-- PEMILIH SANTRI KHUSUS USTADZ DI ANTARMUKA MUDAWAMAH -->
-      <section id="muda-ustadz-student-bar" class="hidden bg-white p-3.5 rounded-3xl border border-amber-200/80 shadow-sm space-y-1.5">
-        <div class="flex items-center justify-between">
-          <span class="text-[10px] font-extrabold text-amber-900 uppercase tracking-wider">Mode Ustadz / Pengampu</span>
-          <span class="text-[9px] bg-amber-50 text-amber-800 px-2 py-0.5 rounded-full border border-amber-200 font-bold">Pantau / Input Santri</span>
+      <!-- PEMILIH SANTRI MAHIR KHUSUS USTADZ DI ANTARMUKA MUDAWAMAH DENGAN PENCARIAN -->
+      <section id="muda-ustadz-student-bar" class="hidden bg-white p-4 rounded-3xl border border-amber-300/80 shadow-sm space-y-2.5">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs">🔥</span>
+            <span class="text-xs font-extrabold text-amber-900">Pilih Santri Kategori Mahir (Tahfizh)</span>
+          </div>
+          <span class="text-[9px] bg-amber-50 text-amber-800 font-bold px-2.5 py-0.5 rounded-full border border-amber-200">Mode Ustadz</span>
         </div>
-        <select id="muda-ustadz-target-student" onchange="onChangeMudaUstadzTargetStudent(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-teal-600">
-          <option value="">-- Catatan Pribadi Ustadz --</option>
-        </select>
+        
+        <!-- Kolom Pencarian Santri Mahir -->
+        <div class="relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
+          <input id="search-muda-santri-input" type="text" oninput="onSearchMudaSantriInput(this.value)" placeholder="Cari nama santri Mahir atau NIS..." class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-16 py-2 text-xs text-slate-800 font-semibold focus:outline-none focus:border-amber-600 transition">
+          <button type="button" id="btn-clear-search-muda" onclick="clearSearchMudaSantri()" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-500 hover:text-rose-600 bg-slate-200/70 px-2 py-0.5 rounded-md transition">
+            Reset
+          </button>
+        </div>
+
+        <!-- Daftar Santri Mahir (Scrollable Grid) -->
+        <div id="muda-mahir-students-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-40 overflow-y-auto pr-1"></div>
+        
+        <div class="flex justify-between items-center pt-1 border-t border-slate-100 text-[10px] text-slate-500 font-medium">
+          <span id="muda-selected-santri-label">Santri Terpilih: <b>Pribadi Ustadz</b></span>
+          <button type="button" onclick="onChangeMudaUstadzTargetStudent('')" class="text-teal-700 hover:underline font-bold">Reset ke Pribadi</button>
+        </div>
       </section>
 
       <!-- TOP METRICS CARDS -->
@@ -5780,6 +5797,7 @@
 
     async function onChangeMudaUstadzTargetStudent(stId) {
       ustadzSelectedMudaStudentId = stId || "";
+      renderMudaMahirStudentsGrid();
       await fetchUserLogs();
       updateUI();
     }
@@ -5818,11 +5836,7 @@
         if (ustBar) {
           if (!isSantriOnly && studentsList.length > 0) {
             ustBar.classList.remove('hidden');
-            const selTarget = document.getElementById('muda-ustadz-target-student');
-            if (selTarget) {
-              selTarget.innerHTML = '<option value="">-- Catatan Pribadi Ustadz (' + currentUser.full_name + ') --</option>' +
-                studentsList.map(s => `<option value="${s.id}" ${s.id === ustadzSelectedMudaStudentId ? 'selected' : ''}>Santri: ${s.full_name} [${s.category}]</option>`).join('');
-            }
+            renderMudaMahirStudentsGrid();
           } else {
             ustBar.classList.add('hidden');
           }
@@ -7507,8 +7521,8 @@
       allUsersData = users || [];
       allGlobalLogs = logs || [];
 
-      const activeUsersCount = allUsersData.filter(u => u.is_active).length;
-      document.getElementById('admin-total-users').innerText = `${activeUsersCount} Santri`;
+      const eligibleParticipants = getAdminLeaderboardData().length;
+      document.getElementById('admin-total-users').innerText = `${eligibleParticipants} Peserta`;
 
       const totalGlobalPages = allGlobalLogs.filter(l => l.pillar === 'Ziyadah' && l.portion_value)
         .reduce((sum, item) => sum + parseFloat(item.portion_value), 0);
@@ -7562,19 +7576,66 @@
     }
 
     function getAdminLeaderboardData() {
-      const activeUsers = allUsersData.filter(u => u.is_active);
-      return activeUsers.map(user => {
-        const logs = allGlobalLogs.filter(l => l.user_id === user.id);
+      // Hanya sertakan Ustadz/Pengampu (bukan role 'wali' dan bukan role 'santri' non-Mahir)
+      const ustadzRoles = ['muhafizh', 'super_admin', 'bendahara', 'kepala_pontren', 'admin'];
+      const mahirStudents = (studentsList || []).filter(s => normalizeStudentCategory(s.category) === 'Mahir (Tahfizh)');
+
+      // Kumpulan email/identitas santri kategori Mahir
+      const mahirStudentEmails = new Set();
+      mahirStudents.forEach(s => {
+        if (s.student_email) {
+          mahirStudentEmails.add(s.student_email.toLowerCase().trim());
+          mahirStudentEmails.add(normalizeAuthIdentifier(s.student_email).toLowerCase());
+        }
+      });
+
+      const entries = [];
+      const coveredMahirStudentIds = new Set();
+
+      // 1. Tambahkan Ustadz/Pengampu & Akun Santri Mahir yang memiliki profil di allUsersData
+      (allUsersData || []).filter(u => u.is_active).forEach(user => {
+        const uRole = (user.role || '').toLowerCase().trim();
+        const uEmail = (user.email || '').toLowerCase().trim();
+        const uEmailNorm = normalizeAuthIdentifier(uEmail).toLowerCase();
+
+        // Abaikan Wali Santri agar tidak masuk ranking
+        if (uRole === 'wali' && !mahirStudentEmails.has(uEmail) && !mahirStudentEmails.has(uEmailNorm)) {
+          return;
+        }
+
+        const matchedMahirSt = mahirStudents.find(s => {
+          const se = (s.student_email || '').toLowerCase().trim();
+          const seNorm = normalizeAuthIdentifier(se).toLowerCase();
+          return se && (se === uEmail || se === uEmailNorm || seNorm === uEmail || seNorm === uEmailNorm);
+        });
+
+        const isUstadz = ustadzRoles.includes(uRole) || uEmail === ADMIN_EMAIL.toLowerCase();
+        if (!isUstadz && !matchedMahirSt) {
+          return; // Skip santri non-Mahir atau akun umum lainnya
+        }
+
+        if (matchedMahirSt) {
+          coveredMahirStudentIds.add(matchedMahirSt.id);
+        }
+
+        const logs = allGlobalLogs.filter(l => {
+          if (matchedMahirSt) {
+            return l.student_id === matchedMahirSt.id || l.user_id === user.id;
+          }
+          return l.user_id === user.id && !l.student_id;
+        });
+
         const mutqinSet = new Set(logs.filter(l => l.juz && (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin')).map(l => l.juz));
         const ziyadahCount = logs.filter(l => l.pillar === 'Ziyadah').length;
         const ulang7Count = logs.filter(l => l.pillar === 'Ulang 7 Hari').length;
         const totalZiyadahPages = logs.filter(l => l.pillar === 'Ziyadah' && l.portion_value).reduce((s, i) => s + parseFloat(i.portion_value), 0);
         const totalMutqinPages = mutqinSet.size * 20;
 
-        return {
+        entries.push({
           id: user.id,
-          name: user.full_name,
-          email: user.email,
+          name: matchedMahirSt ? matchedMahirSt.full_name : user.full_name,
+          email: formatDisplayIdentifier(user.email),
+          roleLabel: matchedMahirSt ? 'Santri Mahir' : 'Ustadz / Pengampu',
           mutqinJuz: mutqinSet.size,
           ziyadahCount: ziyadahCount,
           ulang7Count: ulang7Count,
@@ -7582,8 +7643,35 @@
           mutqinPages: totalMutqinPages,
           totalPages: totalMutqinPages + totalZiyadahPages,
           totalSetoran: logs.length
-        };
+        });
       });
+
+      // 2. Tambahkan Santri Kategori Mahir yang belum pernah login mandiri tapi sudah punya log setoran Mudawamah dari Ustadz
+      mahirStudents.forEach(s => {
+        if (coveredMahirStudentIds.has(s.id)) return;
+        const logs = allGlobalLogs.filter(l => l.student_id === s.id);
+        const mutqinSet = new Set(logs.filter(l => l.juz && (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin')).map(l => l.juz));
+        const ziyadahCount = logs.filter(l => l.pillar === 'Ziyadah').length;
+        const ulang7Count = logs.filter(l => l.pillar === 'Ulang 7 Hari').length;
+        const totalZiyadahPages = logs.filter(l => l.pillar === 'Ziyadah' && l.portion_value).reduce((sum, i) => sum + parseFloat(i.portion_value), 0);
+        const totalMutqinPages = mutqinSet.size * 20;
+
+        entries.push({
+          id: s.id,
+          name: s.full_name,
+          email: s.student_email ? formatDisplayIdentifier(s.student_email) : (s.nis ? 'NIS: ' + s.nis : 'Santri Mahir'),
+          roleLabel: 'Santri Mahir',
+          mutqinJuz: mutqinSet.size,
+          ziyadahCount: ziyadahCount,
+          ulang7Count: ulang7Count,
+          ziyadahPages: totalZiyadahPages,
+          mutqinPages: totalMutqinPages,
+          totalPages: totalMutqinPages + totalZiyadahPages,
+          totalSetoran: logs.length
+        });
+      });
+
+      return entries;
     }
 
     function renderAdminLeaderboard() {
@@ -7611,11 +7699,18 @@
         else if (type === 'ziyadah') metricText = `<span class="text-teal-700 font-bold">${santri.ziyadahCount}x Ziyadah</span>`;
         else metricText = `<span class="text-indigo-600 font-bold">${santri.ulang7Count}x Ulang 7 Hari</span>`;
 
+        const roleBadgeHtml = santri.roleLabel === 'Santri Mahir'
+          ? '<span class="text-[8px] bg-emerald-50 text-emerald-700 border border-emerald-200 font-extrabold px-1.5 py-0.5 rounded-full">Santri Mahir</span>'
+          : '<span class="text-[8px] bg-amber-50 text-amber-800 border border-amber-200 font-extrabold px-1.5 py-0.5 rounded-full">Ustadz</span>';
+
         item.innerHTML = `
           <div class="flex items-center gap-2.5">
             <span class="text-sm font-bold w-5 text-center">${rankBadge}</span>
             <div>
-              <p class="font-bold text-slate-800">${santri.name}</p>
+              <div class="flex flex-wrap items-center gap-1.5">
+                <p class="font-bold text-slate-800">${santri.name}</p>
+                ${roleBadgeHtml}
+              </div>
               <p class="text-[10px] text-slate-400 font-mono">${santri.email}</p>
             </div>
           </div>
@@ -7831,6 +7926,82 @@
     }
   
 
-  </script>
+  
+
+    let searchMudaQuery = '';
+
+    function onSearchMudaSantriInput(val) {
+      searchMudaQuery = String(val || '').trim().toLowerCase();
+      const clearBtn = document.getElementById('btn-clear-search-muda');
+      if (clearBtn) {
+        if (searchMudaQuery) clearBtn.classList.remove('hidden');
+        else clearBtn.classList.add('hidden');
+      }
+      renderMudaMahirStudentsGrid();
+    }
+
+    function clearSearchMudaSantri() {
+      searchMudaQuery = '';
+      const inp = document.getElementById('search-muda-santri-input');
+      if (inp) inp.value = '';
+      document.getElementById('btn-clear-search-muda')?.classList.add('hidden');
+      renderMudaMahirStudentsGrid();
+    }
+
+    function renderMudaMahirStudentsGrid() {
+      const gridEl = document.getElementById('muda-mahir-students-grid');
+      if (!gridEl) return;
+
+      // Filter hanya santri dengan kategori 'Mahir (Tahfizh)'
+      const mahirStudents = studentsList.filter(s => normalizeStudentCategory(s.category) === 'Mahir (Tahfizh)');
+      const filtered = searchMudaQuery
+        ? mahirStudents.filter(s => (s.full_name || '').toLowerCase().includes(searchMudaQuery) || (s.nis || '').toLowerCase().includes(searchMudaQuery))
+        : mahirStudents;
+
+      const labelEl = document.getElementById('muda-selected-santri-label');
+      if (labelEl) {
+        if (!ustadzSelectedMudaStudentId) {
+          labelEl.innerHTML = `Santri Terpilih: <b>Pribadi Ustadz (${currentUser?.full_name || ''})</b>`;
+        } else {
+          const stObj = studentsList.find(s => s.id === ustadzSelectedMudaStudentId);
+          labelEl.innerHTML = `Santri Terpilih: <b class="text-teal-800">${stObj ? stObj.full_name : 'Santri'} [Mahir]</b>`;
+        }
+      }
+
+      if (filtered.length === 0) {
+        gridEl.innerHTML = searchMudaQuery
+          ? `<p class="col-span-full text-xs text-slate-400 italic text-center py-2">Tidak ditemukan santri Mahir dengan kata kunci "<b>${searchMudaQuery}</b>".</p>`
+          : `<p class="col-span-full text-xs text-slate-400 italic text-center py-2">Belum ada santri dengan kategori Mahir (Tahfizh).</p>`;
+        return;
+      }
+
+      gridEl.innerHTML = filtered.map(s => {
+        const isSelected = (s.id === ustadzSelectedMudaStudentId);
+        return `
+          <button type="button" onclick="selectMudaMahirStudent('${s.id}')" class="text-left p-2 rounded-xl border transition flex items-center justify-between ${
+            isSelected ? 'bg-amber-600 text-white border-amber-600 shadow-xs' : 'bg-white hover:bg-amber-50 text-slate-800 border-slate-200'
+          }">
+            <div class="truncate pr-2">
+              <p class="font-bold text-xs truncate">${s.full_name}</p>
+              <p class="text-[9px] ${isSelected ? 'text-amber-100' : 'text-slate-400'} uppercase font-semibold">${s.status} • NIS: ${s.nis || '-'}</p>
+            </div>
+            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-lg shrink-0 ${
+              isSelected ? 'bg-white/20 text-white' : 'bg-amber-50 text-amber-800'
+            }">
+              ${isSelected ? '✓ Terpilih' : 'Pilih'}
+            </span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    async function selectMudaMahirStudent(stId) {
+      ustadzSelectedMudaStudentId = (ustadzSelectedMudaStudentId === stId) ? "" : stId;
+      renderMudaMahirStudentsGrid();
+      await fetchUserLogs();
+      updateUI();
+    }
+
+</script>
 </body>
 </html>
