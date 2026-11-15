@@ -11,9 +11,15 @@
   <!-- jsPDF & AutoTable untuk Export PDF (.pdf) -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-arabic { font-family: 'Amiri', serif; }
+    .dome-shape {
+      border-bottom-left-radius: 2.5rem;
+      border-bottom-right-radius: 2.5rem;
+    }
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -36,7 +42,7 @@
           🕌
         </div>
         <h1 class="text-xl font-extrabold text-slate-900">SIM Pontren Izhharul Haq</h1>
-        <p class="text-xs text-slate-500">Sistem Informasi Manajemen, Tahsin & Tahfizh</p>
+        <p class="text-xs text-slate-500">Sistem Informasi Manajemen, Tahsin, Tahfizh & Mudawamah</p>
       </div>
 
       <div class="space-y-3.5 pt-2">
@@ -80,6 +86,9 @@
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-1.5 self-end sm:self-center">
+          <button id="btn-open-mudawamah-ui" onclick="switchAppInterface('mudawamah')" class="hidden text-[10px] bg-emerald-500/25 hover:bg-emerald-500/35 text-emerald-100 border border-emerald-300/40 px-2.5 py-1.5 rounded-xl font-bold transition flex items-center gap-1 shadow-xs">
+            <span>🔥</span> <span>Antarmuka Mudawamah</span>
+          </button>
           <button id="btn-switch-role" onclick="toggleRoleView()" class="hidden text-[10px] bg-amber-400/20 hover:bg-amber-400/30 text-amber-200 border border-amber-300/40 px-2.5 py-1.5 rounded-xl font-bold transition flex items-center gap-1">
             <span>🔄</span> <span id="switch-role-text">Mode Wali</span>
           </button>
@@ -124,7 +133,12 @@
               <h3 class="font-extrabold text-xs text-slate-800">Kelompok Halaqah Qur'an</h3>
               <p class="text-[10px] text-slate-400">Pilih kategori halaqah untuk melihat daftar santri dan mencatat setoran.</p>
             </div>
-            <span class="text-[10px] bg-teal-50 text-teal-700 font-bold px-2.5 py-0.5 rounded-full border border-teal-100">3 Tingkatan</span>
+            <div class="flex items-center gap-1.5">
+              <button type="button" onclick="switchAppInterface('mudawamah')" class="text-[10px] bg-amber-50 hover:bg-amber-100 text-amber-800 font-extrabold px-2.5 py-1 rounded-full border border-amber-200 transition flex items-center gap-1">
+                <span>🔥</span> <span>Antarmuka Tahfizh Mudawamah</span>
+              </button>
+              <span class="text-[10px] bg-teal-50 text-teal-700 font-bold px-2.5 py-0.5 rounded-full border border-teal-100">3 Tingkatan</span>
+            </div>
           </div>
 
           <!-- 3 Sub-Tabs Halaqah -->
@@ -630,6 +644,10 @@
                 <input id="new-student-email" type="text" placeholder="santri@gmail.com atau 0856xxxx (opsional)" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs font-bold focus:outline-none focus:border-teal-600">
               </div>
             </div>
+            <div id="santri-password-wrapper" class="bg-amber-50/70 border border-amber-200/80 p-2.5 rounded-xl space-y-1">
+              <label class="text-[10px] text-amber-900 block font-bold">🔑 Buat Kata Sandi Awal Akun Santri (App Mudawamah — Default: 123456)</label>
+              <input id="new-santri-password" type="password" placeholder="Isi min. 6 karakter agar santri bisa langsung login (kosongkan otomatis 123456)" class="w-full bg-white border border-amber-200 rounded-lg p-2 text-xs font-bold focus:outline-none focus:border-amber-600">
+            </div>
             <div id="wali-password-wrapper" class="bg-teal-50/70 border border-teal-200/80 p-2.5 rounded-xl space-y-1">
               <label class="text-[10px] text-teal-900 block font-bold">🔑 Buat Kata Sandi Awal Akun Wali (Opsional — Otomatis Aktifkan Login Wali)</label>
               <input id="new-wali-password" type="password" placeholder="Isi min. 6 karakter agar akun Wali langsung bisa login (kosongkan jika sudah punya akun)" class="w-full bg-white border border-teal-200 rounded-lg p-2 text-xs font-bold focus:outline-none focus:border-teal-600">
@@ -1049,6 +1067,566 @@
     </div>
   </div>
 
+
+<!-- ================= MODAL EDIT SETORAN ================= -->
+  <div id="edit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white p-5 rounded-3xl max-w-sm w-full space-y-4 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+        <h3 class="font-bold text-sm text-slate-800">Koreksi Setoran</h3>
+        <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 text-base font-bold">&times;</button>
+      </div>
+      <input type="hidden" id="edit-log-id">
+      <div>
+        <label class="text-[11px] text-slate-600 block mb-1 font-medium">Pilar Setoran</label>
+        <input id="edit-pillar" type="text" disabled class="w-full bg-slate-100 border border-slate-200 rounded-xl p-2 text-xs text-slate-500 font-bold">
+      </div>
+
+      <!-- Edit Ziyadah -->
+      <div id="edit-ziyadah-group" class="space-y-2.5">
+        <div>
+          <label class="text-[11px] text-slate-600 block mb-1 font-medium">Pilih Surat</label>
+          <select id="edit-surah" onchange="onEditSurahChange()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs text-slate-800 font-bold focus:border-teal-500 focus:outline-none"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[11px] text-slate-600 block mb-1 font-medium">Ayat Awal</label>
+            <input id="edit-ayah-start" type="number" min="1" oninput="calculateEditPortion()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs text-slate-800 font-bold focus:border-teal-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-600 block mb-1 font-medium">Ayat Akhir</label>
+            <input id="edit-ayah-end" type="number" min="1" oninput="calculateEditPortion()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs text-slate-800 font-bold focus:border-teal-500 focus:outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="text-[11px] text-slate-700 block mb-1 font-bold">Jumlah Pengulangan Hingga Lancar / Menutup Mushaf</label>
+          <input id="edit-repetition" type="number" min="1" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs text-slate-800 font-bold focus:border-teal-500 focus:outline-none">
+        </div>
+        <div id="edit-calculation-box" class="bg-teal-50 p-2.5 rounded-xl border border-teal-100 text-[11px] text-teal-900 font-semibold space-y-0.5">
+          <p id="edit-calc-page">Halaman: -</p>
+          <p id="edit-calc-lines">Beban: -</p>
+        </div>
+      </div>
+
+      <!-- Edit Juz & Sub Form -->
+      <div id="edit-juz-group" class="hidden space-y-2.5">
+        <div>
+          <label class="text-[11px] text-slate-600 block mb-1 font-medium">Nomor Juz (1-30)</label>
+          <input id="edit-juz" type="number" min="1" max="30" oninput="onEditJuzChange()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs text-slate-800 font-bold focus:border-teal-500 focus:outline-none">
+        </div>
+
+        <!-- Edit Ulang 7 Hari (Daftar Titik Salah/Lupa) -->
+        <div id="edit-ulang-group" class="hidden space-y-2">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
+            <span class="text-[11px] font-bold text-slate-700">Catatan Titik Salah / Lupa</span>
+            <button type="button" onclick="addEditUlangMistakeRow()" class="text-[10px] text-indigo-700 font-extrabold bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg border border-indigo-200">
+              + Catat Salah
+            </button>
+          </div>
+          <div id="edit-ulang-mistakes-container" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+          <div id="edit-ulang-quality-badge" class="p-2 rounded-xl text-center text-[11px] font-bold"></div>
+        </div>
+
+        <!-- Edit Catatan Titik Rawan Mutqin -->
+        <div id="edit-mutqin-group" class="hidden space-y-2">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
+            <span class="text-[11px] font-bold text-slate-700">⚠️ Catatan / Perhatian</span>
+            <button type="button" onclick="addEditMistakeRow()" class="text-[10px] text-teal-700 font-extrabold bg-teal-50 hover:bg-teal-100 px-2.5 py-1 rounded-lg border border-teal-200">
+              + Tambah
+            </button>
+          </div>
+          <div id="edit-mistakes-container" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeEditModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-xs py-2.5 rounded-xl font-bold text-slate-600">Batal</button>
+        <button onclick="saveEditLog()" class="flex-1 bg-teal-600 hover:bg-teal-700 text-xs py-2.5 rounded-xl font-bold text-white shadow-md shadow-teal-600/20">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  
+<!-- ================= DASHBOARD UTAMA ================= -->
+  <div id="mudawamah-full-app" class="hidden pb-24">
+    <!-- Header Dome Bar -->
+    <header class="bg-gradient-to-r from-teal-700 to-teal-800 text-white pt-5 pb-8 px-5 dome-shape shadow-md">
+      <div class="max-w-md mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20">
+            <svg class="w-5 h-5 text-teal-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 id="muda-header-user-name" class="font-extrabold text-sm leading-tight text-white">Nama Pengguna</h2>
+              <span id="muda-header-role-badge" class="hidden text-[9px] bg-teal-500/40 border border-teal-300/40 text-teal-100 font-bold px-2 py-0.5 rounded-full">ADMIN</span>
+            </div>
+            <p id="muda-header-user-email" class="text-[11px] text-teal-100/80 font-mono">user@gmail.com</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button id="btn-back-to-sim" onclick="switchAppInterface('sim')" class="hidden text-[10px] bg-amber-400 text-slate-950 hover:bg-amber-300 px-2.5 py-1.5 rounded-xl font-extrabold transition shadow-xs">
+            🕌 Menu SIM
+          </button>
+          <button onclick="openChangePasswordModal()" class="text-[10px] bg-white/10 border border-white/20 hover:bg-white/20 px-2.5 py-1.5 rounded-xl font-semibold transition" title="Ganti Password">🔑</button>
+          <button onclick="handleLogout()" class="text-[10px] bg-rose-500/30 border border-rose-300/30 hover:bg-rose-500/40 px-2.5 py-1.5 rounded-xl font-semibold transition">Keluar</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-md mx-auto px-4 -mt-5 space-y-3.5">
+      
+      <!-- PEMILIH SANTRI KHUSUS USTADZ DI ANTARMUKA MUDAWAMAH -->
+      <section id="muda-ustadz-student-bar" class="hidden bg-white p-3.5 rounded-3xl border border-amber-200/80 shadow-sm space-y-1.5">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-extrabold text-amber-900 uppercase tracking-wider">Mode Ustadz / Pengampu</span>
+          <span class="text-[9px] bg-amber-50 text-amber-800 px-2 py-0.5 rounded-full border border-amber-200 font-bold">Pantau / Input Santri</span>
+        </div>
+        <select id="muda-ustadz-target-student" onchange="onChangeMudaUstadzTargetStudent(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-teal-600">
+          <option value="">-- Catatan Pribadi Ustadz --</option>
+        </select>
+      </section>
+
+      <!-- TOP METRICS CARDS -->
+      <div class="grid grid-cols-3 gap-2.5">
+        <div class="bg-white p-2.5 rounded-2xl border border-slate-100 shadow-sm text-center flex flex-col justify-center">
+          <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Mutqin</p>
+          <p id="stat-combined-mutqin" class="text-xs sm:text-sm font-extrabold text-teal-700 mt-1">0 Juz</p>
+          <p id="stat-mutqin-pages-sub" class="text-[9px] text-slate-400 font-medium mt-0.5 font-mono">0 / 604 Hal</p>
+        </div>
+        <div class="bg-white p-2.5 rounded-2xl border border-slate-100 shadow-sm text-center flex flex-col justify-center">
+          <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Setor Ziyadah</p>
+          <p id="stat-today-ziyadah" class="text-xs sm:text-sm font-extrabold text-teal-600 mt-1">0 Kali</p>
+          <p class="text-[9px] text-slate-400 font-medium mt-0.5">Hari Ini</p>
+        </div>
+        <div class="bg-white p-2.5 rounded-2xl border border-slate-100 shadow-sm text-center flex flex-col justify-center">
+          <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Setor Mutqin</p>
+          <p id="stat-today-mutqin" class="text-xs sm:text-sm font-extrabold text-amber-600 mt-1">0 Kali</p>
+          <p class="text-[9px] text-slate-400 font-medium mt-0.5">Hari Ini</p>
+        </div>
+      </div>
+
+      <!-- PENGUMUMAN PENTING -->
+      <section id="announcement-alert-box" class="hidden bg-amber-500/10 border-2 border-amber-500/40 p-3.5 rounded-3xl space-y-1 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 flex items-center gap-1.5">
+            <span>📢</span> PENGUMUMAN PENTING
+          </span>
+          <span id="ann-alert-source" class="text-[9px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full border border-amber-200 shadow-xs">Info Admin</span>
+        </div>
+        <h4 id="ann-alert-title" class="font-bold text-xs text-amber-950 mt-1">Judul Pengumuman</h4>
+        <p id="ann-alert-content" class="text-[11px] text-slate-700 leading-relaxed font-medium">Isi pesan...</p>
+      </section>
+
+      <!-- BANNER PROMO JUALAN -->
+      <a id="promo-banner-link" href="#" target="_blank" class="hidden block bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-3.5 rounded-3xl shadow-md border border-teal-500 hover:shadow-lg transition transform active:scale-[0.99] relative overflow-hidden group">
+        <div class="flex items-center justify-between gap-3">
+          <div class="space-y-1">
+            <span id="promo-badge-text" class="text-[9px] bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded-md uppercase tracking-wider">PROMO SPESIAL</span>
+            <h4 id="promo-title-text" class="font-extrabold text-xs text-white leading-tight">Dapatkan Buku Panduan</h4>
+            <p id="promo-desc-text" class="text-[10px] text-teal-100/90 leading-tight">Tingkatkan kualitas hafalan terpadu.</p>
+          </div>
+          <div class="flex-shrink-0">
+            <span id="promo-cta-text" class="bg-white text-teal-800 text-[10px] font-black px-3 py-1.5 rounded-xl shadow group-hover:bg-amber-300 transition flex items-center gap-1">Beli Sekarang ➔</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- BANNER HADITS BERJALAN -->
+      <section class="bg-gradient-to-br from-teal-50 via-emerald-50/50 to-teal-50/30 p-4 rounded-3xl border border-teal-100/80 shadow-sm relative overflow-hidden">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-1.5 text-teal-800">
+            <span class="text-teal-600 font-bold">⭐</span>
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-teal-800">Mutiara Hadits Tahfizh</span>
+          </div>
+          <span id="hadits-source-badge" class="text-[9px] font-bold bg-white text-teal-700 px-2 py-0.5 rounded-full border border-teal-200/60 shadow-xs">HR. Abu Dawud</span>
+        </div>
+        <div class="min-h-[72px] flex flex-col justify-center transition-opacity duration-500 ease-in-out" id="hadits-container">
+          <p id="hadits-arabic" class="font-arabic text-base text-right text-teal-950 font-bold leading-relaxed mb-1" dir="rtl"></p>
+          <p id="hadits-indo" class="text-[11px] text-slate-700 italic font-medium leading-snug"></p>
+        </div>
+        <div class="flex justify-center items-center gap-1.5 mt-2.5" id="hadits-dots"></div>
+      </section>
+
+      <!-- TAB 1: FORM SETORAN (DILENGKAPI RIWAYAT SETORAN) -->
+      <section id="tab-input" class="tab-content bg-transparent space-y-3.5">
+        <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <h3 class="font-bold text-xs text-slate-800">Catat Setoran Hafalan</h3>
+            <span class="text-[10px] bg-teal-50 text-teal-700 border border-teal-100 px-2.5 py-0.5 rounded-full font-semibold">Madinah 15 Baris</span>
+          </div>
+
+          <div>
+            <label class="text-[11px] text-slate-500 block mb-1.5 font-medium">Pilih Tahapan Pilar</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" onclick="setPillar('Ziyadah')" class="pillar-btn bg-teal-600 border border-teal-600 text-white font-bold py-2 rounded-xl text-xs transition shadow-sm" data-pillar="Ziyadah">Ziyadah</button>
+              <button type="button" onclick="setPillar('Ulang 7 Hari')" class="pillar-btn bg-slate-50 border border-slate-200 text-slate-600 py-2 rounded-xl text-xs transition" data-pillar="Ulang 7 Hari">Ulang 7 Hari</button>
+              <button type="button" onclick="setPillar('Mutqin')" class="pillar-btn bg-slate-50 border border-slate-200 text-slate-600 py-2 rounded-xl text-xs transition" data-pillar="Mutqin">Mutqin</button>
+            </div>
+          </div>
+
+          <!-- FORM ZIYADAH -->
+          <div id="field-ziyadah-group" class="space-y-3">
+            <div>
+              <label class="text-[11px] text-slate-500 block mb-1 font-medium">Nama Surat (1 - 114)</label>
+              <select id="input-surah" onchange="onSurahChange()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-bold focus:outline-none focus:border-teal-500"></select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="text-[11px] text-slate-500 block mb-1 font-medium">Ayat Awal</label>
+                <input id="input-ayah-start" type="number" min="1" value="1" oninput="calculateZiyadahPortion()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-bold focus:outline-none focus:border-teal-500">
+              </div>
+              <div>
+                <label class="text-[11px] text-slate-500 block mb-1 font-medium">Ayat Akhir</label>
+                <input id="input-ayah-end" type="number" min="1" value="5" oninput="calculateZiyadahPortion()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-bold focus:outline-none focus:border-teal-500">
+              </div>
+            </div>
+
+            <div>
+              <label class="text-[11px] text-slate-700 block mb-1 font-bold">Jumlah Pengulangan Hingga Lancar / Menutup Mushaf</label>
+              <input id="input-repetition" type="number" min="1" value="1" placeholder="Contoh: 3" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-bold focus:outline-none focus:border-teal-500">
+            </div>
+
+            <!-- LIVE PREVIEW KALKULASI PROPORSI -->
+            <div id="calculation-preview-box" class="bg-gradient-to-br from-teal-50 to-emerald-50/70 p-3 rounded-2xl border border-teal-200/80 space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-teal-800 flex items-center gap-1">
+                  <span>📖</span> Letak Fisik Mushaf
+                </span>
+                <span id="preview-page-badge" class="text-[10px] font-bold bg-white text-teal-700 px-2 py-0.5 rounded-full border border-teal-200">Hal. 2</span>
+              </div>
+              <div class="flex items-baseline justify-between pt-1">
+                <span class="text-xs text-slate-600 font-medium">Beban Setoran:</span>
+                <span id="preview-lines-text" class="text-xs font-black text-teal-900">15 Baris (1.00 Halaman)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- FORM JUZ, ULANG 7 HARI & MUTQIN -->
+          <div id="field-juz-group" class="hidden space-y-3">
+            <div>
+              <label class="text-[11px] text-slate-500 block mb-1 font-medium">Nomor Juz (1 - 30)</label>
+              <input id="input-juz-single" type="number" min="1" max="30" oninput="onJuzSingleChange()" placeholder="Contoh: 1" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-bold focus:outline-none focus:border-teal-500">
+            </div>
+
+            <!-- Khusus Pilar Ulang 7 Hari (Daftar Titik Salah / Lupa Dinamis) -->
+            <div id="field-quality-group" class="hidden space-y-2.5">
+              <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                <div>
+                  <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <span>🔁</span> Catatan Titik Salah / Lupa
+                  </span>
+                  <p class="text-[10px] text-slate-400">0-1: Lancar (🟢) | 2-4: Ragu (🟡) | &gt;4: Rapuh (🔴)</p>
+                </div>
+                <button type="button" onclick="addUlangMistakeRow()" class="text-[10px] text-indigo-700 font-extrabold bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl border border-indigo-200 flex items-center gap-1 transition">
+                  <span>+</span> Catat Salah
+                </button>
+              </div>
+
+              <!-- Status Otomatis Kualitas 7 Hari -->
+              <div id="ulang-quality-badge" class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-2.5 rounded-xl text-xs font-bold text-center">
+                🟢 Lancar (0 Kesalahan / Lupa)
+              </div>
+
+              <!-- Kontainer Baris Salah / Lupa Ulang 7 Hari -->
+              <div id="ulang-mistakes-container" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+            </div>
+
+            <!-- ================= FITUR DINAMIS KENDALA / TITIK RAWAN MUTQIN ================= -->
+            <div id="field-mutqin-details-group" class="hidden space-y-2.5 pt-1">
+              <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                <div>
+                  <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <span>⚠️</span> Catatan / Perhatian
+                  </span>
+                  <p class="text-[10px] text-slate-400">Total kendala dihitung otomatis dari baris yang ditambahkan.</p>
+                </div>
+                <button type="button" onclick="addMistakeRow()" class="text-[10px] text-teal-700 font-extrabold bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-xl border border-teal-200 flex items-center gap-1 transition">
+                  <span>+</span> Catat Kendala
+                </button>
+              </div>
+
+              <!-- Status Ringkasan Kesalahan Otomatis -->
+              <div id="mistakes-counter-badge" class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-2.5 rounded-2xl text-[11px] font-bold text-center">
+                🟢 Lancar Sempurna (0 Titik Rawan / Kesalahan)
+              </div>
+
+              <!-- Kontainer Baris Kendala Dinamis -->
+              <div id="mistakes-container" class="space-y-2.5 max-h-80 overflow-y-auto pr-1"></div>
+            </div>
+          </div>
+
+          <button onclick="submitLog()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-teal-600/20 transition active:scale-[0.98] text-xs">
+            Simpan Setoran ke Cloud
+          </button>
+        </div>
+
+        <!-- RIWAYAT SETORAN 7 HARI TERAKHIR (KHUSUS TAB SETOR) -->
+        <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm space-y-3">
+          <div class="flex justify-between items-center">
+            <h4 class="font-bold text-xs text-slate-800">Riwayat Setoran (7 Hari Terakhir)</h4>
+            <span class="text-[10px] text-slate-400">Edit / Hapus</span>
+          </div>
+          <div id="recent-logs-list" class="space-y-2 max-h-72 overflow-y-auto pr-1"></div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 2: MILESTONE JUZ MUTQIN ================= -->
+      <section id="tab-mutqin" class="tab-content hidden bg-white p-5 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+        <div class="border-b border-slate-100 pb-3 flex justify-between items-center">
+          <div>
+            <h3 class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
+              <span>👑</span> Rekam Jejak Juz Mutqin
+            </h3>
+            <p class="text-[10px] text-slate-400">Pencapaian juz, siklus putaran & evaluasi pemutihan titik rawan.</p>
+          </div>
+          <span id="mutqin-summary-badge" class="bg-amber-50 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-amber-200">0 / 30 Juz</span>
+        </div>
+
+        <!-- 3 KARTU STATISTIK MUTQIN -->
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-slate-50 p-2 rounded-2xl border border-slate-100">
+            <p class="text-[9px] text-slate-400 font-semibold uppercase">Juz Unik</p>
+            <p id="mutqin-total-count" class="text-xs sm:text-sm font-extrabold text-teal-700 mt-0.5">0 Juz</p>
+          </div>
+          <div class="bg-amber-50/70 p-2 rounded-2xl border border-amber-100">
+            <p class="text-[9px] text-amber-800 font-semibold uppercase">Total Putaran</p>
+            <p id="mutqin-cumulative-rounds" class="text-xs sm:text-sm font-extrabold text-amber-700 mt-0.5">0x Setor</p>
+          </div>
+          <div class="bg-slate-50 p-2 rounded-2xl border border-slate-100">
+            <p class="text-[9px] text-slate-400 font-semibold uppercase">Rata-rata Laju</p>
+            <p id="mutqin-avg-gap" class="text-xs sm:text-sm font-extrabold text-teal-700 mt-0.5">- Hari</p>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <h4 class="text-[11px] font-bold text-slate-700">Daftar Juz Mutqin:</h4>
+          <div id="mutqin-milestone-list" class="space-y-2.5 max-h-96 overflow-y-auto pr-1"></div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 3: REKAPITULASI DENGAN STREAK MUDAWAMAH ================= -->
+      <section id="tab-stats" class="tab-content hidden bg-white p-5 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+        
+        <!-- HEADER TABEL REKAP -->
+        <div class="border-b border-slate-100 pb-3 flex justify-between items-center">
+          <div>
+            <h3 class="font-bold text-xs text-slate-800">Rekapitulasi Hafalan</h3>
+            <p id="stat-period-desc" class="text-[10px] text-slate-400">Pekan Ini</p>
+          </div>
+          <div class="flex bg-slate-100 p-0.5 rounded-xl text-[9px] font-bold overflow-x-auto">
+            <button onclick="setStatsPeriod('daily')" id="btn-period-daily" class="px-2 py-1 rounded-lg text-slate-500 hover:text-slate-800">Harian</button>
+            <button onclick="setStatsPeriod('weekly')" id="btn-period-weekly" class="px-2 py-1 rounded-lg bg-white text-teal-700 shadow-sm font-bold">Pekan</button>
+            <button onclick="setStatsPeriod('monthly')" id="btn-period-monthly" class="px-2 py-1 rounded-lg text-slate-500 hover:text-slate-800">Bulan</button>
+            <button onclick="setStatsPeriod('yearly')" id="btn-period-yearly" class="px-2 py-1 rounded-lg text-slate-500 hover:text-slate-800">Tahun</button>
+            <button onclick="setStatsPeriod('lifetime')" id="btn-period-lifetime" class="px-2 py-1 rounded-lg text-slate-500 hover:text-slate-800">Seumur Hidup</button>
+          </div>
+        </div>
+
+        <!-- METRIK STREAK MUDAWAMAH (3 KARTU ANALITIK) -->
+        <div class="bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-teal-500/10 p-3.5 rounded-2xl border border-amber-500/20 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+              <span>🔥</span> KONSISTENSI STREAK MUDAWAMAH
+            </span>
+            <span class="text-[9px] bg-white text-amber-800 font-bold px-2 py-0.5 rounded-full border border-amber-200">Disiplin Harian</span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 text-center pt-1">
+            <div class="bg-white p-2 rounded-xl border border-amber-100 shadow-2xs">
+              <p class="text-[9px] text-slate-400 font-bold uppercase">Streak Aktif</p>
+              <p id="streak-current-val" class="text-xs sm:text-sm font-black text-amber-600 mt-0.5">0 Hari</p>
+            </div>
+            <div class="bg-white p-2 rounded-xl border border-orange-100 shadow-2xs">
+              <p class="text-[9px] text-slate-400 font-bold uppercase">Streak Terlama</p>
+              <p id="streak-longest-val" class="text-xs sm:text-sm font-black text-orange-600 mt-0.5">0 Hari</p>
+            </div>
+            <div class="bg-white p-2 rounded-xl border border-teal-100 shadow-2xs">
+              <p class="text-[9px] text-slate-400 font-bold uppercase">Rata-rata</p>
+              <p id="streak-avg-val" class="text-xs sm:text-sm font-black text-teal-700 mt-0.5">0 Hari</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- RINGKASAN CAPAIAN PERIODIK -->
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-teal-50/60 p-2.5 rounded-2xl border border-teal-100">
+            <p class="text-[10px] text-teal-700 font-semibold">Ziyadah Bersih</p>
+            <p id="stat-period-ziyadah" class="text-xs sm:text-sm font-extrabold text-teal-700 mt-0.5">0 Hal</p>
+            <p class="text-[8px] text-teal-600/70 font-medium">(Maks 604 Hal)</p>
+          </div>
+          <div class="bg-indigo-50/60 p-2.5 rounded-2xl border border-indigo-100">
+            <p class="text-[10px] text-indigo-700 font-semibold">Ulang 7 Hari</p>
+            <p id="stat-period-ulang" class="text-xs sm:text-sm font-extrabold text-indigo-600 mt-0.5">0x Setor</p>
+            <p class="text-[8px] text-indigo-500/70 font-medium">(Jumlah Setor)</p>
+          </div>
+          <div class="bg-amber-50/60 p-2.5 rounded-2xl border border-amber-100">
+            <p class="text-[10px] text-amber-700 font-semibold">Mutqin</p>
+            <p id="stat-period-mutqin" class="text-xs sm:text-sm font-extrabold text-amber-600 mt-0.5">0x Setor</p>
+            <p class="text-[8px] text-amber-600/70 font-medium">(Jumlah Setor)</p>
+          </div>
+        </div>
+
+        <!-- DIAGRAM BATANG -->
+        <div class="relative w-full h-56 pt-2">
+          <canvas id="periodChart"></canvas>
+        </div>
+        <p class="text-[9px] text-slate-400 text-center italic">*Grafik batang menampilkan akumulasi beban ikhtiar (halaman diulang & 20 hal/juz).</p>
+
+        <div class="pt-2 border-t border-slate-100 flex gap-2">
+          <button onclick="exportCSV()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-xs py-2.5 rounded-xl font-bold border border-slate-200 text-slate-700">Unduh CSV</button>
+          <button onclick="exportPDF()" class="flex-1 bg-teal-600 hover:bg-teal-700 text-xs py-2.5 rounded-xl font-bold text-white shadow-md shadow-teal-600/20">Cetak Rapor PDF</button>
+        </div>
+      </section>
+
+      <!-- TAB 4: SUPER ADMIN DASHBOARD -->
+      <section id="tab-admin" class="tab-content hidden bg-white p-5 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+        <div class="border-b border-slate-100 pb-3 flex justify-between items-start">
+          <div>
+            <h3 class="font-bold text-xs text-slate-800">Panel Kontrol Super Admin</h3>
+            <p class="text-[10px] text-slate-400">Lisensi, promosi jualan, pengumuman, & master rapor.</p>
+          </div>
+          <span class="text-[9px] bg-teal-50 text-teal-700 border border-teal-200 font-bold px-2 py-0.5 rounded-full">SUPER ADMIN</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-center">
+          <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+            <p class="text-[10px] text-slate-400">Total Santri Aktif</p>
+            <p id="admin-total-users" class="text-sm font-extrabold text-teal-700 mt-0.5">0 Santri</p>
+          </div>
+          <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+            <p class="text-[10px] text-slate-400">Total Halaman Terkumpul</p>
+            <p id="admin-total-pages-global" class="text-sm font-extrabold text-teal-700 mt-0.5">0 Hal</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-2">
+          <p class="text-[11px] font-bold text-slate-700">Ekspor Laporan Master (Semua Santri):</p>
+          <div class="flex gap-2">
+            <button onclick="exportAdminMasterCSV()" class="flex-1 bg-white hover:bg-slate-100 text-[11px] py-2.5 rounded-xl font-bold border border-slate-200 text-slate-700 shadow-sm flex items-center justify-center gap-1.5">
+              Master CSV
+            </button>
+            <button onclick="exportAdminMasterPDF()" class="flex-1 bg-teal-600 hover:bg-teal-700 text-[11px] py-2.5 rounded-xl font-bold text-white shadow-md shadow-teal-600/20 flex items-center justify-center gap-1.5">
+              Master PDF
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-4 bg-slate-100 p-1 rounded-2xl text-[10px] font-bold text-center gap-1">
+          <button onclick="switchAdminSubTab('approval')" id="btn-adm-sub-approval" class="py-1.5 rounded-xl bg-white text-teal-700 shadow-sm">Approval</button>
+          <button onclick="switchAdminSubTab('leaderboard')" id="btn-adm-sub-leaderboard" class="py-1.5 rounded-xl text-slate-500 hover:text-slate-800">Ranking</button>
+          <button onclick="switchAdminSubTab('announcement')" id="btn-adm-sub-announcement" class="py-1.5 rounded-xl text-slate-500 hover:text-slate-800">📢 Info</button>
+          <button onclick="switchAdminSubTab('promo')" id="btn-adm-sub-promo" class="py-1.5 rounded-xl text-slate-500 hover:text-slate-800">🎁 Jualan</button>
+        </div>
+
+        <div id="admin-sub-approval" class="space-y-2">
+          <h4 class="text-[11px] font-bold text-slate-700">Pendaftar Menunggu Persetujuan:</h4>
+          <div id="admin-pending-list" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+        </div>
+
+        <div id="admin-sub-leaderboard" class="hidden space-y-3">
+          <div class="flex justify-between items-center">
+            <h4 class="text-[11px] font-bold text-slate-700">Peringkat Prestasi Santri</h4>
+            <select id="admin-rank-type" onchange="renderAdminLeaderboard()" class="bg-slate-50 border border-slate-200 rounded-lg text-[10px] px-2 py-1 text-teal-700 font-bold focus:outline-none">
+              <option value="mutqin">👑 Juz Mutqin Terbanyak</option>
+              <option value="ziyadah">⚡ Ziyadah Teraktif</option>
+              <option value="ulang7">🔁 Ulang 7 Hari Teraktif</option>
+            </select>
+          </div>
+          <div id="admin-leaderboard-list" class="space-y-2 max-h-64 overflow-y-auto pr-1"></div>
+        </div>
+
+        <div id="admin-sub-announcement" class="hidden space-y-3.5">
+          <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+              <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5"><span>📢</span> Pengaturan Pengumuman</h4>
+              <label class="flex items-center gap-1.5 cursor-pointer bg-white px-2.5 py-1 rounded-xl border border-slate-200 shadow-xs">
+                <span class="text-[10px] font-bold text-slate-700">Aktifkan Pengumuman</span>
+                <input id="input-ann-active" type="checkbox" class="w-4 h-4 text-teal-600 rounded focus:ring-teal-500">
+              </label>
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-500 block mb-1 font-semibold">Judul Pengumuman</label>
+              <input id="input-ann-title" type="text" placeholder="Contoh: Tasmi' Akbar Ahad Depan" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-teal-500">
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-500 block mb-1 font-semibold">Isi Pesan Pengumuman</label>
+              <textarea id="input-ann-content" rows="2" placeholder="Tuliskan detail pengumuman..." class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-teal-500"></textarea>
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-500 block mb-1 font-semibold">Sumber / Penulis</label>
+              <input id="input-ann-source" type="text" placeholder="Contoh: Pembina Tahfizh" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-teal-500">
+            </div>
+            <button onclick="saveAnnouncementSettings()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-xl shadow-md text-xs transition">
+              💾 Simpan Status & Pengumuman
+            </button>
+          </div>
+        </div>
+
+        <div id="admin-sub-promo" class="hidden space-y-3.5">
+          <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+              <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5"><span>🎁</span> Pengaturan Banner Jualan</h4>
+              <label class="flex items-center gap-1.5 cursor-pointer bg-white px-2.5 py-1 rounded-xl border border-slate-200 shadow-xs">
+                <span class="text-[10px] font-bold text-slate-700">Aktifkan Promosi</span>
+                <input id="input-promo-active" type="checkbox" class="w-4 h-4 text-teal-600 rounded focus:ring-teal-500">
+              </label>
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-500 block mb-1 font-semibold">Teks Label / Badge</label>
+              <input id="input-promo-badge" type="text" placeholder="Contoh: PROMO SPESIAL" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-teal-500">
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-500 block mb-1 font-semibold">Judul Produk / Penawaran</label>
+              <input id="input-promo-title" type="text" placeholder="Contoh: Mushaf Tahfizh & Buku Mutabaah" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-teal-500">
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-500 block mb-1 font-semibold">Deskripsi Singkat</label>
+              <input id="input-promo-desc" type="text" placeholder="Contoh: Diskon 30% khusus santri." class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-teal-500">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-[10px] text-slate-500 block mb-1 font-semibold">Teks Tombol (CTA)</label>
+                <input id="input-promo-cta" type="text" placeholder="Beli Sekarang" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-teal-500">
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-500 block mb-1 font-semibold">Link URL Tujuan</label>
+                <input id="input-promo-url" type="text" placeholder="https://..." class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-teal-500">
+              </div>
+            </div>
+            <button onclick="savePromoSettings()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 rounded-xl shadow-md text-xs transition">
+              💾 Simpan Pengaturan Banner Jualan
+            </button>
+          </div>
+        </div>
+
+      </section>
+    </main>
+
+    <!-- BOTTOM NAVBAR -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 backdrop-blur-md border-t border-slate-100 flex justify-around py-2.5 z-50 shadow-lg">
+      <button onclick="switchTab('tab-input', this)" class="nav-btn text-teal-600 text-[11px] flex flex-col items-center gap-1 font-bold">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 012.828 0L20 4.828a2 2 0 010 2.828l-8.414 8.414-2.828.707.707-2.828 8.414-8.414z"></path></svg>
+        <span>Setor</span>
+      </button>
+      <button onclick="switchTab('tab-mutqin', this)" class="nav-btn text-slate-400 text-[11px] flex flex-col items-center gap-1 font-medium hover:text-slate-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+        <span>Mutqin</span>
+      </button>
+      <button onclick="switchTab('tab-stats', this)" class="nav-btn text-slate-400 text-[11px] flex flex-col items-center gap-1 font-medium hover:text-slate-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+        <span>Rekap</span>
+      </button>
+      <button id="nav-btn-admin" onclick="switchTab('tab-admin', this)" class="nav-btn hidden text-slate-400 text-[11px] flex flex-col items-center gap-1 font-medium hover:text-slate-600">
+        <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+        <span class="text-amber-600 font-bold">Admin</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
+  
   <!-- JAVASCRIPT LOGIC -->
   <script>
     const SUPABASE_URL = "https://kmijybceaeopjfsulixq.supabase.co"; 
@@ -1329,24 +1907,42 @@
 
       const pendingUstMatch = getPendingLocalUstadz().find(p => (p.email || '').toLowerCase() === (authUser.email || '').toLowerCase());
 
+      // Cek apakah email/No. HP login ini terdaftar sebagai student_email di tabel students
+      const normAuthEmail = (authUser.email || '').toLowerCase();
+      const dispAuthIdent = formatDisplayIdentifier(normAuthEmail).toLowerCase();
+      
+      const { data: stdsCheck } = await sb.from('students').select('*');
+      studentsList = stdsCheck || studentsList;
+
+      const matchedStudentRow = studentsList.find(s => {
+        const se = (s.student_email || '').toLowerCase();
+        const seDisp = formatDisplayIdentifier(se).toLowerCase();
+        return se && (se === normAuthEmail || seDisp === dispAuthIdent);
+      });
+
       if (!profile) {
         const { data: pEmail } = await sb.from('profiles').select('*').eq('email', authUser.email).maybeSingle();
         if (pEmail) {
           profile = pEmail;
         } else {
-          const initRole = pendingUstMatch?.role || authUser.user_metadata?.role || 'wali';
-          const initName = pendingUstMatch?.full_name || authUser.user_metadata?.full_name || authUser.email.split('@')[0];
+          const determinedRole = matchedStudentRow ? 'santri' : (pendingUstMatch?.role || authUser.user_metadata?.role || 'wali');
+          const determinedName = matchedStudentRow?.full_name || pendingUstMatch?.full_name || authUser.user_metadata?.full_name || authUser.email.split('@')[0];
           const initPhone = pendingUstMatch?.phone || null;
+
           const { data: newP } = await sb.from('profiles').insert([{
             id: authUser.id,
             email: authUser.email,
-            full_name: initName,
-            role: initRole,
+            full_name: determinedName,
+            role: determinedRole,
             phone: initPhone,
             is_active: true
           }]).select().maybeSingle();
-          profile = newP || { id: authUser.id, email: authUser.email, full_name: initName, role: initRole };
+          profile = newP || { id: authUser.id, email: authUser.email, full_name: determinedName, role: determinedRole };
         }
+      } else if (matchedStudentRow && profile.role === 'wali') {
+        await sb.from('profiles').update({ role: 'santri', full_name: matchedStudentRow.full_name }).eq('id', profile.id);
+        profile.role = 'santri';
+        profile.full_name = matchedStudentRow.full_name;
       } else if (pendingUstMatch) {
         const { data: updatedP } = await sb.from('profiles').update({
           full_name: pendingUstMatch.full_name,
@@ -1376,7 +1972,7 @@
       // Tampilkan doa setelah nama Ustadz / Pengampu
       const headerDoa = document.getElementById('header-ustadz-doa');
       if (headerDoa) {
-        if (currentUser.role !== 'wali') {
+        if (currentUser.role !== 'wali' && currentUser.role !== 'santri') {
           headerDoa.classList.remove('hidden');
         } else {
           headerDoa.classList.add('hidden');
@@ -1429,7 +2025,31 @@
       activeViewMode = (currentUser.role === 'wali') ? 'wali' : 'internal';
 
       await loadInitialData();
-      renderCurrentView();
+
+      linkedStudentRecordForCurrentUser = studentsList.find(s => {
+        const se = (s.student_email || '').toLowerCase();
+        const seDisp = formatDisplayIdentifier(se).toLowerCase();
+        return se && (se === normAuthEmail || seDisp === dispAuthIdent);
+      }) || null;
+
+      const btnOpenMuda = document.getElementById('btn-open-mudawamah-ui');
+      if (btnOpenMuda) {
+        if (currentUser.role !== 'wali' && currentUser.role !== 'santri') {
+          btnOpenMuda.classList.remove('hidden');
+        } else {
+          btnOpenMuda.classList.add('hidden');
+        }
+      }
+
+      if (currentUser.role === 'santri' || (linkedStudentRecordForCurrentUser && currentUser.role === 'wali' && myChildrenList.length === 0)) {
+        if (linkedStudentRecordForCurrentUser && currentUser.full_name === currentUser.email.split('@')[0]) {
+          currentUser.full_name = linkedStudentRecordForCurrentUser.full_name;
+        }
+        switchAppInterface('mudawamah');
+        return;
+      }
+
+      switchAppInterface('sim');
     }
 
     function toggleRoleView() {
@@ -2315,6 +2935,9 @@
       document.getElementById('new-student-nis').value = "";
       document.getElementById('new-student-parent-email').value = "";
       document.getElementById('new-student-email').value = "";
+      if (document.getElementById('new-santri-password')) {
+        document.getElementById('new-santri-password').value = "";
+      }
       if (document.getElementById('new-wali-password')) {
         document.getElementById('new-wali-password').value = "";
       }
@@ -2455,6 +3078,58 @@
 
       const pEmail = normalizeAuthIdentifier(rawPEmail);
       const sEmail = rawSEmail ? normalizeAuthIdentifier(rawSEmail) : '';
+
+      const santriPassInput = (document.getElementById('new-santri-password')?.value || '').trim();
+      if (santriPassInput && santriPassInput.length < 6) return showToast("Kata sandi awal santri minimal 6 karakter", true);
+
+      // Jika Admin mengisi Email/No. HP Santri, buatkan juga akun login Santri agar bisa langsung login ke Tracker Mudawamah
+      if (sEmail) {
+        try {
+          const { data: curSess } = await sb.auth.getSession();
+          const savedAdminSess = curSess?.session || null;
+          const santriPass = santriPassInput || '123456';
+          
+          let sAuthData = null;
+          let sAuthErr = null;
+          try {
+            const res = await sb.auth.signUp({
+              email: sEmail,
+              password: santriPass,
+              options: { data: { full_name: name, role: 'santri' } }
+            });
+            sAuthData = res.data;
+            sAuthErr = res.error;
+          } catch (netErr) {
+            sAuthErr = netErr;
+          }
+
+          if (savedAdminSess && savedAdminSess.access_token && savedAdminSess.refresh_token) {
+            await sb.auth.setSession({
+              access_token: savedAdminSess.access_token,
+              refresh_token: savedAdminSess.refresh_token
+            });
+          }
+
+          if (!sAuthErr && sAuthData?.user?.id) {
+            await sb.from('profiles').upsert([{
+              id: sAuthData.user.id,
+              email: sEmail,
+              full_name: name,
+              role: 'santri',
+              phone: !rawSEmail.includes('@') ? normalizePhoneDigits(rawSEmail) : null,
+              is_active: true
+            }]);
+          } else if (sAuthErr && (sAuthErr.message || '').toLowerCase().includes('already registered')) {
+            // Jika akun sudah ada di auth, pastikan profilnya diset sebagai santri
+            const { data: existingUserObj } = await sb.from('profiles').select('id').eq('email', sEmail).maybeSingle();
+            if (existingUserObj) {
+              await sb.from('profiles').update({ role: 'santri', full_name: name }).eq('id', existingUserObj.id);
+            }
+          }
+        } catch (e) {
+          console.warn("Pembuatan akun santri:", e);
+        }
+      }
 
       // Jika Admin mengisi Kata Sandi Awal Wali, buatkan akun login Wali otomatis tanpa memutus sesi Admin
       let waliAccountCreatedMsg = "";
@@ -5075,9 +5750,2087 @@
       await sb.auth.signOut();
       currentUser = null;
       authAccount = null;
+      linkedStudentRecordForCurrentUser = null;
+      userLogs = [];
       document.getElementById('main-app').classList.add('hidden');
+      document.getElementById('mudawamah-full-app').classList.add('hidden');
       document.getElementById('auth-screen').classList.remove('hidden');
     }
+  
+    // ================= MODUL TERPADU TAHFIZH TRACKER MUDAWAMAH =================
+    const ADMIN_EMAIL = "djoddi99@gmail.com";
+    let userLogs = [];
+    let selectedPillar = 'Ziyadah';
+    let activeStatsPeriod = 'weekly';
+    let chartInstance = null;
+    let allUsersData = [];
+    let allGlobalLogs = [];
+    let currentMistakes = [];
+    let editMistakes = [];
+    let currentUlangMistakes = [];
+    let editUlangMistakes = [];
+    let linkedStudentRecordForCurrentUser = null;
+    let ustadzSelectedMudaStudentId = "";
+
+    function getActiveMudawamahStudentId() {
+      if (linkedStudentRecordForCurrentUser?.id) return linkedStudentRecordForCurrentUser.id;
+      if (ustadzSelectedMudaStudentId) return ustadzSelectedMudaStudentId;
+      return null;
+    }
+
+    async function onChangeMudaUstadzTargetStudent(stId) {
+      ustadzSelectedMudaStudentId = stId || "";
+      await fetchUserLogs();
+      updateUI();
+    }
+
+    async function switchAppInterface(targetApp) {
+      const simApp = document.getElementById('main-app');
+      const mudaApp = document.getElementById('mudawamah-full-app');
+      const btnBackSim = document.getElementById('btn-back-to-sim');
+      const ustBar = document.getElementById('muda-ustadz-student-bar');
+
+      if (targetApp === 'mudawamah') {
+        simApp.classList.add('hidden');
+        mudaApp.classList.remove('hidden');
+
+        document.getElementById('muda-header-user-name').innerText = currentUser.full_name;
+        document.getElementById('muda-header-user-email').innerText = formatDisplayIdentifier(currentUser.email);
+
+        const isAdmin = ['admin', 'super_admin', 'kepala_pontren'].includes((currentUser.role || '').toLowerCase()) || (currentUser.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase();
+        const mudaBadge = document.getElementById('muda-header-role-badge');
+        const navAdminBtn = document.getElementById('nav-btn-admin');
+        if (isAdmin) {
+          mudaBadge?.classList.remove('hidden');
+          navAdminBtn?.classList.remove('hidden');
+          loadAdminData();
+        } else {
+          mudaBadge?.classList.add('hidden');
+          navAdminBtn?.classList.add('hidden');
+        }
+
+        const isSantriOnly = (currentUser.role === 'santri') || (linkedStudentRecordForCurrentUser && currentUser.role === 'wali' && myChildrenList.length === 0);
+        if (btnBackSim) {
+          if (!isSantriOnly) btnBackSim.classList.remove('hidden');
+          else btnBackSim.classList.add('hidden');
+        }
+
+        if (ustBar) {
+          if (!isSantriOnly && studentsList.length > 0) {
+            ustBar.classList.remove('hidden');
+            const selTarget = document.getElementById('muda-ustadz-target-student');
+            if (selTarget) {
+              selTarget.innerHTML = '<option value="">-- Catatan Pribadi Ustadz (' + currentUser.full_name + ') --</option>' +
+                studentsList.map(s => `<option value="${s.id}" ${s.id === ustadzSelectedMudaStudentId ? 'selected' : ''}>Santri: ${s.full_name} [${s.category}]</option>`).join('');
+            }
+          } else {
+            ustBar.classList.add('hidden');
+          }
+        }
+
+        initSurahDropdowns();
+        initHaditsSlider();
+        renderUlangMistakesUI();
+        await loadAnnouncementSettings();
+        await loadPromoBanner();
+        await fetchUserLogs();
+        updateUI();
+        switchTab('tab-input', document.querySelector('#mudawamah-full-app .nav-btn'));
+      } else {
+        mudaApp.classList.add('hidden');
+        simApp.classList.remove('hidden');
+        renderCurrentView();
+      }
+    }
+
+    async function fetchUserLogs() {
+      const targetStId = getActiveMudawamahStudentId();
+      if (targetStId) {
+        const stObj = studentsList.find(s => s.id === targetStId);
+        let q = sb.from('mudawamah_logs').select('*');
+        if (stObj && stObj.student_email) {
+          const dispStIdent = formatDisplayIdentifier(stObj.student_email);
+          const normStIdent = normalizeAuthIdentifier(stObj.student_email);
+          q = q.or(`student_id.eq.${targetStId},notes.ilike.%${normStIdent}%,notes.ilike.%${dispStIdent}%`);
+        } else {
+          q = q.eq('student_id', targetStId);
+        }
+        const { data, error } = await q.order('created_at', { ascending: false });
+        userLogs = (!error && data) ? data : [];
+      } else {
+        const { data, error } = await sb.from('mudawamah_logs').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+        userLogs = (!error && data) ? data : [];
+      }
+    }
+
+// DATA 114 SURAT
+    const QURAN_SURAHS = [
+      { no: 1, name: "Al-Fatihah", verses: 7, startPage: 1, endPage: 1 },
+      { no: 2, name: "Al-Baqarah", verses: 286, startPage: 2, endPage: 49 },
+      { no: 3, name: "Ali 'Imran", verses: 200, startPage: 50, endPage: 76 },
+      { no: 4, name: "An-Nisa'", verses: 176, startPage: 77, endPage: 106 },
+      { no: 5, name: "Al-Ma'idah", verses: 120, startPage: 106, endPage: 127 },
+      { no: 6, name: "Al-An'am", verses: 165, startPage: 128, endPage: 150 },
+      { no: 7, name: "Al-A'raf", verses: 206, startPage: 151, endPage: 176 },
+      { no: 8, name: "Al-Anfal", verses: 75, startPage: 177, endPage: 186 },
+      { no: 9, name: "At-Taubah", verses: 129, startPage: 187, endPage: 207 },
+      { no: 10, name: "Yunus", verses: 109, startPage: 208, endPage: 220 },
+      { no: 11, name: "Hud", verses: 123, startPage: 221, endPage: 234 },
+      { no: 12, name: "Yusuf", verses: 111, startPage: 235, endPage: 248 },
+      { no: 13, name: "Ar-Ra'd", verses: 43, startPage: 249, endPage: 254 },
+      { no: 14, name: "Ibrahim", verses: 52, startPage: 255, endPage: 261 },
+      { no: 15, name: "Al-Hijr", verses: 99, startPage: 262, endPage: 266 },
+      { no: 16, name: "An-Nahl", verses: 128, startPage: 267, endPage: 281 },
+      { no: 17, name: "Al-Isra'", verses: 111, startPage: 282, endPage: 292 },
+      { no: 18, name: "Al-Kahf", verses: 110, startPage: 293, endPage: 304 },
+      { no: 19, name: "Maryam", verses: 98, startPage: 305, endPage: 311 },
+      { no: 20, name: "Taha", verses: 135, startPage: 312, endPage: 321 },
+      { no: 21, name: "Al-Anbiya'", verses: 112, startPage: 322, endPage: 331 },
+      { no: 22, name: "Al-Hajj", verses: 78, startPage: 332, endPage: 341 },
+      { no: 23, name: "Al-Mu'minun", verses: 118, startPage: 342, endPage: 349 },
+      { no: 24, name: "An-Nur", verses: 64, startPage: 350, endPage: 358 },
+      { no: 25, name: "Al-Furqan", verses: 77, startPage: 359, endPage: 366 },
+      { no: 26, name: "Asy-Syu'ara'", verses: 227, startPage: 367, endPage: 376 },
+      { no: 27, name: "An-Naml", verses: 93, startPage: 377, endPage: 384 },
+      { no: 28, name: "Al-Qashas", verses: 88, startPage: 385, endPage: 395 },
+      { no: 29, name: "Al-'Ankabut", verses: 69, startPage: 396, endPage: 403 },
+      { no: 30, name: "Ar-Rum", verses: 60, startPage: 404, endPage: 410 },
+      { no: 31, name: "Luqman", verses: 34, startPage: 411, endPage: 414 },
+      { no: 32, name: "As-Sajdah", verses: 30, startPage: 415, endPage: 417 },
+      { no: 33, name: "Al-Ahzab", verses: 73, startPage: 418, endPage: 427 },
+      { no: 34, name: "Saba'", verses: 54, startPage: 428, endPage: 433 },
+      { no: 35, name: "Fathir", verses: 45, startPage: 434, endPage: 439 },
+      { no: 36, name: "Yasin", verses: 83, startPage: 440, endPage: 445 },
+      { no: 37, name: "Ash-Shaffat", verses: 182, startPage: 446, endPage: 452 },
+      { no: 38, name: "Shad", verses: 88, startPage: 453, endPage: 457 },
+      { no: 39, name: "Az-Zumar", verses: 75, startPage: 458, endPage: 466 },
+      { no: 40, name: "Ghafir", verses: 85, startPage: 467, endPage: 476 },
+      { no: 41, name: "Fushshilat", verses: 54, startPage: 477, endPage: 482 },
+      { no: 42, name: "Asy-Syura", verses: 53, startPage: 483, endPage: 488 },
+      { no: 43, name: "Az-Zukhruf", verses: 89, startPage: 489, endPage: 495 },
+      { no: 44, name: "Ad-Dukhan", verses: 59, startPage: 496, endPage: 498 },
+      { no: 45, name: "Al-Jatsiyah", verses: 37, startPage: 499, endPage: 501 },
+      { no: 46, name: "Al-Ahqaf", verses: 35, startPage: 502, endPage: 506 },
+      { no: 47, name: "Muhammad", verses: 38, startPage: 507, endPage: 510 },
+      { no: 48, name: "Al-Fath", verses: 29, startPage: 511, endPage: 514 },
+      { no: 49, name: "Al-Hujurat", verses: 18, startPage: 515, endPage: 517 },
+      { no: 50, name: "Qaf", verses: 45, startPage: 518, endPage: 519 },
+      { no: 51, name: "Adz-Dzariyat", verses: 60, startPage: 520, endPage: 522 },
+      { no: 52, name: "Ath-Thur", verses: 49, startPage: 523, endPage: 525 },
+      { no: 53, name: "An-Najm", verses: 62, startPage: 526, endPage: 527 },
+      { no: 54, name: "Al-Qamar", verses: 55, startPage: 528, endPage: 530 },
+      { no: 55, name: "Ar-Rahman", verses: 78, startPage: 531, endPage: 533 },
+      { no: 56, name: "Al-Waqi'ah", verses: 96, startPage: 534, endPage: 536 },
+      { no: 57, name: "Al-Hadid", verses: 29, startPage: 537, endPage: 541 },
+      { no: 58, name: "Al-Mujadilah", verses: 22, startPage: 542, endPage: 544 },
+      { no: 59, name: "Al-Hasyr", verses: 24, startPage: 545, endPage: 548 },
+      { no: 60, name: "Al-Mumtahanah", verses: 13, startPage: 549, endPage: 550 },
+      { no: 61, name: "Ash-Shaff", verses: 14, startPage: 551, endPage: 552 },
+      { no: 62, name: "Al-Jumu'ah", verses: 11, startPage: 553, endPage: 553 },
+      { no: 63, name: "Al-Munafiqun", verses: 11, startPage: 554, endPage: 555 },
+      { no: 64, name: "At-Taghabun", verses: 18, startPage: 556, endPage: 557 },
+      { no: 65, name: "Ath-Thalaq", verses: 12, startPage: 558, endPage: 559 },
+      { no: 66, name: "At-Tahrim", verses: 12, startPage: 560, endPage: 561 },
+      { no: 67, name: "Al-Mulk", verses: 30, startPage: 562, endPage: 563 },
+      { no: 68, name: "Al-Qalam", verses: 52, startPage: 564, endPage: 565 },
+      { no: 69, name: "Al-Haqqah", verses: 52, startPage: 566, endPage: 567 },
+      { no: 70, name: "Al-Ma'arij", verses: 44, startPage: 568, endPage: 569 },
+      { no: 71, name: "Nuh", verses: 28, startPage: 570, endPage: 571 },
+      { no: 72, name: "Al-Jinn", verses: 28, startPage: 572, endPage: 573 },
+      { no: 73, name: "Al-Muzzammil", verses: 20, startPage: 574, endPage: 574 },
+      { no: 74, name: "Al-Muddatstsir", verses: 56, startPage: 575, endPage: 576 },
+      { no: 75, name: "Al-Qiyamah", verses: 40, startPage: 577, endPage: 577 },
+      { no: 76, name: "Al-Insan", verses: 31, startPage: 578, endPage: 579 },
+      { no: 77, name: "Al-Mursalat", verses: 50, startPage: 580, endPage: 581 },
+      { no: 78, name: "An-Naba'", verses: 40, startPage: 582, endPage: 582 },
+      { no: 79, name: "An-Nazi'at", verses: 46, startPage: 583, endPage: 584 },
+      { no: 80, name: "'Abasa", verses: 42, startPage: 585, endPage: 585 },
+      { no: 81, name: "At-Takwir", verses: 29, startPage: 586, endPage: 586 },
+      { no: 82, name: "Al-Infithar", verses: 19, startPage: 587, endPage: 587 },
+      { no: 83, name: "Al-Muthaffifin", verses: 36, startPage: 587, endPage: 588 },
+      { no: 84, name: "Al-Insyiqaq", verses: 25, startPage: 589, endPage: 589 },
+      { no: 85, name: "Al-Buruj", verses: 22, startPage: 590, endPage: 590 },
+      { no: 86, name: "Ath-Thariq", verses: 17, startPage: 591, endPage: 591 },
+      { no: 87, name: "Al-A'la", verses: 19, startPage: 591, endPage: 591 },
+      { no: 88, name: "Al-Ghasyiyah", verses: 26, startPage: 592, endPage: 592 },
+      { no: 89, name: "Al-Fajr", verses: 30, startPage: 593, endPage: 593 },
+      { no: 90, name: "Al-Balad", verses: 20, startPage: 594, endPage: 594 },
+      { no: 91, name: "Asy-Syams", verses: 15, startPage: 595, endPage: 595 },
+      { no: 92, name: "Al-Lail", verses: 21, startPage: 595, endPage: 595 },
+      { no: 93, name: "Adh-Dhuha", verses: 11, startPage: 596, endPage: 596 },
+      { no: 94, name: "Asy-Syarh", verses: 8, startPage: 596, endPage: 596 },
+      { no: 95, name: "At-Tin", verses: 8, startPage: 597, endPage: 597 },
+      { no: 96, name: "Al-'Alaq", verses: 19, startPage: 597, endPage: 597 },
+      { no: 97, name: "Al-Qadr", verses: 5, startPage: 598, endPage: 598 },
+      { no: 98, name: "Al-Bayyinah", verses: 8, startPage: 598, endPage: 598 },
+      { no: 99, name: "Az-Zalzalah", verses: 8, startPage: 599, endPage: 599 },
+      { no: 100, name: "Al-'Adiyat", verses: 11, startPage: 599, endPage: 599 },
+      { no: 101, name: "Al-Qari'ah", verses: 11, startPage: 600, endPage: 600 },
+      { no: 102, name: "At-Takatsur", verses: 8, startPage: 600, endPage: 600 },
+      { no: 103, name: "Al-'Ashr", verses: 3, startPage: 601, endPage: 601 },
+      { no: 104, name: "Al-Humazah", verses: 9, startPage: 601, endPage: 601 },
+      { no: 105, name: "Al-Fil", verses: 5, startPage: 601, endPage: 601 },
+      { no: 106, name: "Quraisy", verses: 4, startPage: 602, endPage: 602 },
+      { no: 107, name: "Al-Ma'un", verses: 7, startPage: 602, endPage: 602 },
+      { no: 108, name: "Al-Kautsar", verses: 3, startPage: 602, endPage: 602 },
+      { no: 109, name: "Al-Kafirun", verses: 6, startPage: 603, endPage: 603 },
+      { no: 110, name: "An-Nashr", verses: 3, startPage: 603, endPage: 603 },
+      { no: 111, name: "Al-Lahab", verses: 5, startPage: 603, endPage: 603 },
+      { no: 112, name: "Al-Ikhlas", verses: 4, startPage: 604, endPage: 604 },
+      { no: 113, name: "Al-Falaq", verses: 5, startPage: 604, endPage: 604 },
+      { no: 114, name: "An-Nas", verses: 6, startPage: 604, endPage: 604 }
+    ];
+
+    // PEMETAAN SURAT DALAM SETIAP JUZ (1 - 30)
+    const QURAN_JUZ_MAPPING = {
+      1: [1, 2], 2: [2], 3: [2, 3], 4: [3, 4], 5: [4], 6: [4, 5], 7: [5, 6], 8: [6, 7], 9: [7, 8], 10: [8, 9],
+      11: [9, 10, 11], 12: [11, 12], 13: [12, 13, 14], 14: [15, 16], 15: [17, 18], 16: [18, 19, 20], 17: [21, 22],
+      18: [23, 24, 25], 19: [25, 26, 27], 20: [27, 28, 29], 21: [29, 30, 31, 32, 33], 22: [33, 34, 35, 36],
+      23: [36, 37, 38, 39], 24: [39, 40, 41], 25: [41, 42, 43, 44, 45], 26: [46, 47, 48, 49, 50, 51],
+      27: [51, 52, 53, 54, 55, 56, 57], 28: [58, 59, 60, 61, 62, 63, 64, 65, 66],
+      29: [67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77],
+      30: [78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114]
+    };
+
+    function getSurahOptionsHTML(selectedNo = 2, filterJuz = null) {
+      let list = QURAN_SURAHS;
+      if (filterJuz && QURAN_JUZ_MAPPING[filterJuz]) {
+        const allowedSurahs = QURAN_JUZ_MAPPING[filterJuz];
+        list = QURAN_SURAHS.filter(s => allowedSurahs.includes(s.no));
+      }
+      return list.map(s => `<option value="${s.no}" ${s.no === selectedNo ? 'selected' : ''}>${s.no}. ${s.name} (${s.verses} Ayat)</option>`).join('');
+    }
+
+    function initSurahDropdowns() {
+      const inputSurah = document.getElementById('input-surah');
+      const editSurah = document.getElementById('edit-surah');
+      if (!inputSurah || !editSurah) return;
+
+      inputSurah.innerHTML = getSurahOptionsHTML(2);
+      editSurah.innerHTML = getSurahOptionsHTML(2);
+      onSurahChange();
+    }
+
+    function onSurahChange() {
+      const sNo = parseInt(document.getElementById('input-surah').value);
+      const s = QURAN_SURAHS.find(x => x.no === sNo);
+      if (!s) return;
+
+      const inputStart = document.getElementById('input-ayah-start');
+      const inputEnd = document.getElementById('input-ayah-end');
+
+      inputStart.max = s.verses;
+      inputEnd.max = s.verses;
+
+      if (parseInt(inputStart.value) > s.verses) inputStart.value = 1;
+      if (parseInt(inputEnd.value) > s.verses || parseInt(inputEnd.value) < parseInt(inputStart.value)) {
+        inputEnd.value = Math.min(5, s.verses);
+      }
+
+      calculateZiyadahPortion();
+    }
+
+    function onJuzSingleChange() {
+      if (selectedPillar === 'Mutqin') {
+        renderMistakesUI();
+      } else if (selectedPillar === 'Ulang 7 Hari') {
+        renderUlangMistakesUI();
+      }
+    }
+
+    function onEditJuzChange() {
+      const p = document.getElementById('edit-pillar').value;
+      if (p === 'Ulang 7 Hari') {
+        renderEditUlangMistakesUI();
+      } else {
+        renderEditMistakesUI();
+      }
+    }
+
+    // Evaluasi Otomatis Ulang 7 Hari (0-1: Hijau, 2-4: Kuning, >4: Merah)
+    function getAutoQuality(mistakes) {
+      if (mistakes <= 1) return { quality: 'Hijau', label: '🟢 Lancar', css: 'bg-emerald-50 border border-emerald-200 text-emerald-800' };
+      if (mistakes <= 4) return { quality: 'Kuning', label: '🟡 Ragu', css: 'bg-amber-50 border border-amber-200 text-amber-800' };
+      return { quality: 'Merah', label: '🔴 Rapuh', css: 'bg-rose-50 border border-rose-200 text-rose-800' };
+    }
+
+    // ================= LOGIKA KHUSUS ULANG 7 HARI (HANYA SALAH / LUPA) =================
+    function addUlangMistakeRow(data = null) {
+      const currentJuz = parseInt(document.getElementById('input-juz-single').value) || 1;
+      const allowedSurahs = QURAN_JUZ_MAPPING[currentJuz] || [1, 2];
+      const defaultSurah = allowedSurahs[0] || 2;
+
+      const item = data || {
+        id: 'u_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        surahNo: defaultSurah,
+        ayah: 1
+      };
+      currentUlangMistakes.push(item);
+      renderUlangMistakesUI();
+    }
+
+    function removeUlangMistakeRow(idx) {
+      currentUlangMistakes.splice(idx, 1);
+      renderUlangMistakesUI();
+    }
+
+    function renderUlangMistakesUI() {
+      const container = document.getElementById('ulang-mistakes-container');
+      const badge = document.getElementById('ulang-quality-badge');
+      if (!container || !badge) return;
+
+      container.innerHTML = '';
+      const total = currentUlangMistakes.length;
+      const autoRes = getAutoQuality(total);
+
+      badge.className = `${autoRes.css} p-2.5 rounded-xl text-xs font-bold text-center`;
+      badge.innerText = `${autoRes.label} (${total} Catatan Salah / Lupa)`;
+
+      const currentJuz = parseInt(document.getElementById('input-juz-single').value) || null;
+
+      currentUlangMistakes.forEach((item, idx) => {
+        if (currentJuz && QURAN_JUZ_MAPPING[currentJuz]) {
+          const allowed = QURAN_JUZ_MAPPING[currentJuz];
+          if (!allowed.includes(item.surahNo)) {
+            item.surahNo = allowed[0];
+          }
+        }
+
+        const row = document.createElement('div');
+        row.className = "bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 flex items-center gap-2 text-xs";
+        row.innerHTML = `
+          <span class="text-[10px] font-bold text-rose-600 w-12 flex-shrink-0">Salah #${idx + 1}</span>
+          <div class="flex-1">
+            <select onchange="currentUlangMistakes[${idx}].surahNo = parseInt(this.value)" class="w-full bg-white border border-slate-200 rounded-lg p-1.5 text-[11px] font-bold focus:outline-none">
+              ${getSurahOptionsHTML(item.surahNo, currentJuz)}
+            </select>
+          </div>
+          <div class="w-20">
+            <input type="number" min="1" value="${item.ayah}" oninput="currentUlangMistakes[${idx}].ayah = parseInt(this.value) || 1" placeholder="Ayat" class="w-full bg-white border border-slate-200 rounded-lg p-1.5 text-[11px] font-bold text-center focus:outline-none">
+          </div>
+          <button type="button" onclick="removeUlangMistakeRow(${idx})" class="text-rose-500 hover:text-rose-700 font-bold p-1 text-xs">&times;</button>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function addEditUlangMistakeRow(data = null) {
+      const editJuz = parseInt(document.getElementById('edit-juz').value) || 1;
+      const allowedSurahs = QURAN_JUZ_MAPPING[editJuz] || [1, 2];
+      const defaultSurah = allowedSurahs[0] || 2;
+
+      const item = data || {
+        id: 'eu_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        surahNo: defaultSurah,
+        ayah: 1
+      };
+      editUlangMistakes.push(item);
+      renderEditUlangMistakesUI();
+    }
+
+    function removeEditUlangMistakeRow(idx) {
+      editUlangMistakes.splice(idx, 1);
+      renderEditUlangMistakesUI();
+    }
+
+    function renderEditUlangMistakesUI() {
+      const container = document.getElementById('edit-ulang-mistakes-container');
+      const badge = document.getElementById('edit-ulang-quality-badge');
+      if (!container || !badge) return;
+
+      container.innerHTML = '';
+      const total = editUlangMistakes.length;
+      const autoRes = getAutoQuality(total);
+
+      badge.className = `${autoRes.css} p-2 rounded-xl text-center text-[11px] font-bold mt-2`;
+      badge.innerText = `${autoRes.label} (${total} Salah / Lupa)`;
+
+      const editJuz = parseInt(document.getElementById('edit-juz').value) || null;
+
+      editUlangMistakes.forEach((item, idx) => {
+        if (editJuz && QURAN_JUZ_MAPPING[editJuz]) {
+          const allowed = QURAN_JUZ_MAPPING[editJuz];
+          if (!allowed.includes(item.surahNo)) {
+            item.surahNo = allowed[0];
+          }
+        }
+
+        const row = document.createElement('div');
+        row.className = "bg-slate-50 p-2 rounded-xl border border-slate-200 flex items-center gap-2 text-xs";
+        row.innerHTML = `
+          <span class="text-[10px] font-bold text-rose-600 w-12 flex-shrink-0">Salah #${idx + 1}</span>
+          <div class="flex-1">
+            <select onchange="editUlangMistakes[${idx}].surahNo = parseInt(this.value)" class="w-full bg-white border border-slate-200 rounded p-1 text-[10px] font-bold">
+              ${getSurahOptionsHTML(item.surahNo, editJuz)}
+            </select>
+          </div>
+          <div class="w-16">
+            <input type="number" min="1" value="${item.ayah}" oninput="editUlangMistakes[${idx}].ayah = parseInt(this.value) || 1" placeholder="Ayat" class="w-full bg-white border border-slate-200 rounded p-1 text-[10px] text-center font-bold">
+          </div>
+          <button type="button" onclick="removeEditUlangMistakeRow(${idx})" class="text-rose-500 font-bold text-xs">&times;</button>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // ================= LOGIKA PILAR ZIYADAH =================
+    function calculateMushafLinesAndPages(surahNo, aStart, aEnd) {
+      const s = QURAN_SURAHS.find(x => x.no === surahNo);
+      if (!s) return { pageStart: 1, pageEnd: 1, totalLines: 15, portionValue: 1.0, surahName: "Al-Baqarah" };
+
+      const totalPagesCovered = Math.max(1, (s.endPage - s.startPage) + 1);
+      const totalEstimatedLines = totalPagesCovered * 15;
+
+      const ratioStart = (aStart - 1) / s.verses;
+      const ratioEnd = aEnd / s.verses;
+
+      const pageStart = Math.min(s.endPage, s.startPage + Math.floor(ratioStart * totalPagesCovered));
+      const pageEnd = Math.min(s.endPage, s.startPage + Math.floor(ratioEnd * totalPagesCovered));
+
+      const ayahsCount = Math.max(1, (aEnd - aStart) + 1);
+      let calculatedLines = Math.round((ayahsCount / s.verses) * totalEstimatedLines);
+      if (calculatedLines < 1) calculatedLines = 1;
+
+      const portionValue = parseFloat((calculatedLines / 15).toFixed(2));
+
+      return {
+        surahName: s.name,
+        pageStart: pageStart,
+        pageEnd: pageEnd,
+        totalLines: calculatedLines,
+        portionValue: portionValue
+      };
+    }
+
+    function calculateZiyadahPortion() {
+      const sNo = parseInt(document.getElementById('input-surah').value);
+      const aStart = parseInt(document.getElementById('input-ayah-start').value) || 1;
+      const aEnd = parseInt(document.getElementById('input-ayah-end').value) || aStart;
+
+      const res = calculateMushafLinesAndPages(sNo, aStart, aEnd);
+
+      const pageBadge = document.getElementById('preview-page-badge');
+      const linesText = document.getElementById('preview-lines-text');
+
+      if (pageBadge) {
+        pageBadge.innerText = res.pageStart === res.pageEnd ? `Hal. ${res.pageStart}` : `Hal. ${res.pageStart} s.d. ${res.pageEnd}`;
+      }
+
+      const halCount = Math.floor(res.totalLines / 15);
+      const sisaBaris = res.totalLines % 15;
+      let textDeskripsi = '';
+      if (halCount > 0 && sisaBaris > 0) {
+        textDeskripsi = `${halCount} Hal ${sisaBaris} Baris (${res.portionValue} Hal)`;
+      } else if (halCount > 0 && sisaBaris === 0) {
+        textDeskripsi = `${halCount} Halaman (${res.portionValue} Hal)`;
+      } else {
+        textDeskripsi = `${res.totalLines} Baris (${res.portionValue} Hal)`;
+      }
+
+      if (linesText) linesText.innerText = textDeskripsi;
+    }
+
+    function onEditSurahChange() {
+      const sNo = parseInt(document.getElementById('edit-surah').value);
+      const s = QURAN_SURAHS.find(x => x.no === sNo);
+      if (!s) return;
+
+      const inputStart = document.getElementById('edit-ayah-start');
+      const inputEnd = document.getElementById('edit-ayah-end');
+      if (inputStart) inputStart.max = s.verses;
+      if (inputEnd) inputEnd.max = s.verses;
+      calculateEditPortion();
+    }
+
+    function calculateEditPortion() {
+      const surahEl = document.getElementById('edit-surah');
+      if (!surahEl) return;
+      const sNo = parseInt(surahEl.value) || 2;
+      const aStart = parseInt(document.getElementById('edit-ayah-start').value) || 1;
+      const aEnd = parseInt(document.getElementById('edit-ayah-end').value) || aStart;
+
+      const res = calculateMushafLinesAndPages(sNo, aStart, aEnd);
+      const pageText = res.pageStart === res.pageEnd ? `Halaman ${res.pageStart}` : `Halaman ${res.pageStart} - ${res.pageEnd}`;
+      
+      const calcPageEl = document.getElementById('edit-calc-page');
+      const calcLinesEl = document.getElementById('edit-calc-lines');
+      if (calcPageEl) calcPageEl.innerText = `Letak: ${pageText}`;
+      if (calcLinesEl) calcLinesEl.innerText = `Beban: ${res.totalLines} Baris (${res.portionValue} Halaman)`;
+    }
+
+    // BANNER HADITS SLIDER
+    const haditsList = [
+      {
+        arabic: "مَنْ قَرَأَ الْقُرْآنَ وَعَمِلَ بِمَا فِيهِ أُلْبِسَ وَالِدَاهُ تَاجًا يَوْمَ الْقِيَامَةِ ضَوْءُهُ أَحْسَنُ مِنْ ضَوْءِ الشَّمْسِ",
+        indo: "\"Siapa yang membaca Al-Qur'an dan mengamalkan isinya, kedua orang tuanya akan dipakaikan mahkota pada hari kiamat yang sinarnya lebih indah dari sinar matahari.\"",
+        source: "HR. Abu Dawud no. 1453"
+      },
+      {
+        arabic: "خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ",
+        indo: "\"Sebaik-baik kalian adalah orang yang mempelajari Al-Qur'an dan mengajarkannya.\"",
+        source: "HR. Bukhari no. 5027"
+      },
+      {
+        arabic: "اقْرَءُوا الْقُرْآنَ فَإِنَّهُ يَأْتِي يَوْمَ الْقِيَامَةِ شَفِيعًا لِأَصْحَابِهِ",
+        indo: "\"Bacalah Al-Qur'an, karena ia akan datang pada hari kiamat sebagai pemberi syafaat bagi para pembacanya.\"",
+        source: "HR. Muslim no. 804"
+      },
+      {
+        arabic: "يُقَالُ لِصَاحِبِ الْقُرْآنِ اقْرَأْ وَارْتَقِ وَرَتِّلْ كَمَا كُنْتَ تُرَتِّلُ فِي الدُّنْيَا",
+        indo: "\"Dikatakan kepada penghafal Al-Qur'an: Bacalah, naiklah dan tartilkanlah sebagaimana engkau mentartilkannya di dunia.\"",
+        source: "HR. Tirmidzi & Abu Dawud"
+      }
+    ];
+
+    let currentHaditsIdx = 0;
+    let haditsTimer = null;
+
+    function initHaditsSlider() {
+      const dotsContainer = document.getElementById('hadits-dots');
+      if (!dotsContainer) return;
+      dotsContainer.innerHTML = '';
+      haditsList.forEach((_, i) => {
+        const dot = document.createElement('span');
+        dot.className = i === 0 ? 'w-4 h-1.5 bg-teal-600 rounded-full transition-all duration-300' : 'w-1.5 h-1.5 bg-teal-200 rounded-full transition-all duration-300';
+        dot.id = `hadits-dot-${i}`;
+        dotsContainer.appendChild(dot);
+      });
+
+      if (haditsTimer) clearInterval(haditsTimer);
+      haditsTimer = setInterval(nextHadits, 6000);
+    }
+
+    function nextHadits() {
+      const container = document.getElementById('hadits-container');
+      if (!container) return;
+      container.style.opacity = '0';
+
+      setTimeout(() => {
+        currentHaditsIdx = (currentHaditsIdx + 1) % haditsList.length;
+        const h = haditsList[currentHaditsIdx];
+        document.getElementById('hadits-arabic').innerText = h.arabic;
+        document.getElementById('hadits-indo').innerText = h.indo;
+        document.getElementById('hadits-source-badge').innerText = h.source;
+
+        haditsList.forEach((_, i) => {
+          const dot = document.getElementById(`hadits-dot-${i}`);
+          if (dot) {
+            dot.className = i === currentHaditsIdx ? 'w-4 h-1.5 bg-teal-600 rounded-full transition-all duration-300' : 'w-1.5 h-1.5 bg-teal-200 rounded-full transition-all duration-300';
+          }
+        });
+
+        container.style.opacity = '1';
+      }, 400);
+    }
+
+    async function loadAnnouncementSettings() {
+      try {
+        const { data, error } = await sb.from('announcement_settings').select('*').eq('id', 1).single();
+        const alertBox = document.getElementById('announcement-alert-box');
+
+        if (!error && data) {
+          if (data.is_active) {
+            document.getElementById('ann-alert-title').innerText = data.title;
+            document.getElementById('ann-alert-content').innerText = data.content;
+            document.getElementById('ann-alert-source').innerText = data.source || "Info Admin";
+            alertBox.classList.remove('hidden');
+          } else {
+            alertBox.classList.add('hidden');
+          }
+
+          const inputActive = document.getElementById('input-ann-active');
+          if (inputActive) {
+            inputActive.checked = data.is_active;
+            document.getElementById('input-ann-title').value = data.title || "";
+            document.getElementById('input-ann-content').value = data.content || "";
+            document.getElementById('input-ann-source').value = data.source || "";
+          }
+        } else {
+          alertBox.classList.add('hidden');
+        }
+      } catch (e) {
+        console.warn("Gagal memuat pengumuman:", e);
+      }
+    }
+
+    async function loadPromoBanner() {
+      try {
+        const { data, error } = await sb.from('promo_settings').select('*').eq('id', 1).single();
+        const banner = document.getElementById('promo-banner-link');
+
+        if (!error && data) {
+          if (data.is_active) {
+            document.getElementById('promo-badge-text').innerText = data.badge || "PROMO SPESIAL";
+            document.getElementById('promo-title-text').innerText = data.title;
+            document.getElementById('promo-desc-text').innerText = data.description;
+            document.getElementById('promo-cta-text').innerText = `${data.cta_text || 'Beli Sekarang'} ➔`;
+            banner.href = data.target_url || '#';
+            banner.classList.remove('hidden');
+          } else {
+            banner.classList.add('hidden');
+          }
+
+          const inputActive = document.getElementById('input-promo-active');
+          if (inputActive) {
+            inputActive.checked = data.is_active;
+            document.getElementById('input-promo-badge').value = data.badge || "";
+            document.getElementById('input-promo-title').value = data.title || "";
+            document.getElementById('input-promo-desc').value = data.description || "";
+            document.getElementById('input-promo-cta').value = data.cta_text || "";
+            document.getElementById('input-promo-url').value = data.target_url || "";
+          }
+        } else {
+          banner.classList.add('hidden');
+        }
+      } catch (e) {
+        console.warn("Gagal memuat banner promo:", e);
+      }
+    }
+
+    
+
+// ================= LOGIKA FORM KENDALA / TITIK RAWAN MUTQIN DINAMIS =================
+    function addMistakeRow(data = null) {
+      const currentJuz = parseInt(document.getElementById('input-juz-single').value) || 1;
+      const allowedSurahs = QURAN_JUZ_MAPPING[currentJuz] || [1, 2];
+      const defaultSurah = allowedSurahs[0] || 2;
+
+      const item = data || {
+        id: 'm_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        surahNo: defaultSurah,
+        ayah: 1,
+        type: 'mirip',
+        similarAyahs: [ { surahNo: 7, ayah: 1 } ]
+      };
+
+      currentMistakes.push(item);
+      renderMistakesUI();
+    }
+
+    function removeMistakeRow(index) {
+      currentMistakes.splice(index, 1);
+      renderMistakesUI();
+    }
+
+    function addSimilarAyahToRow(mIndex) {
+      if (!currentMistakes[mIndex].similarAyahs) currentMistakes[mIndex].similarAyahs = [];
+      currentMistakes[mIndex].similarAyahs.push({ surahNo: 2, ayah: 1 });
+      renderMistakesUI();
+    }
+
+    function removeSimilarAyahFromRow(mIndex, sIndex) {
+      currentMistakes[mIndex].similarAyahs.splice(sIndex, 1);
+      renderMistakesUI();
+    }
+
+    function renderMistakesUI() {
+      const container = document.getElementById('mistakes-container');
+      const badge = document.getElementById('mistakes-counter-badge');
+      if (!container || !badge) return;
+
+      container.innerHTML = '';
+      const total = currentMistakes.length;
+
+      if (total === 0) {
+        badge.className = "bg-emerald-50 border border-emerald-200 text-emerald-800 p-2.5 rounded-2xl text-[11px] font-bold text-center";
+        badge.innerText = "🟢 Lancar Sempurna (0 Titik Rawan / Kesalahan)";
+        return;
+      }
+
+      badge.className = "bg-rose-50 border border-rose-200 text-rose-800 p-2.5 rounded-2xl text-[11px] font-bold text-center";
+      badge.innerText = `⚠️ Terdeteksi ${total} Titik Rawan / Kesalahan`;
+
+      const currentJuz = parseInt(document.getElementById('input-juz-single').value) || null;
+
+      currentMistakes.forEach((m, idx) => {
+        const card = document.createElement('div');
+        card.className = "bg-slate-50 p-3 rounded-2xl border border-slate-200/80 space-y-2 text-xs relative";
+
+        let similarHTML = '';
+        if (m.type === 'mirip') {
+          const rowsHTML = (m.similarAyahs || []).map((s, sIdx) => `
+            <div class="flex items-center gap-1.5 pt-1">
+              <span class="text-[10px] text-slate-400 font-bold w-12 flex-shrink-0">Mirip ${sIdx + 1}:</span>
+              <select onchange="currentMistakes[${idx}].similarAyahs[${sIdx}].surahNo = parseInt(this.value)" class="flex-1 bg-white border border-slate-200 rounded-lg p-1.5 text-[11px] font-medium focus:outline-none">
+                ${getSurahOptionsHTML(s.surahNo, null)}
+              </select>
+              <input type="number" min="1" value="${s.ayah}" oninput="currentMistakes[${idx}].similarAyahs[${sIdx}].ayah = parseInt(this.value) || 1" placeholder="Ayat" class="w-16 bg-white border border-slate-200 rounded-lg p-1.5 text-[11px] font-bold text-center focus:outline-none">
+              ${(m.similarAyahs.length > 1) ? `<button type="button" onclick="removeSimilarAyahFromRow(${idx}, ${sIdx})" class="text-rose-500 hover:text-rose-700 font-bold p-1 text-xs">&times;</button>` : ''}
+            </div>
+          `).join('');
+
+          similarHTML = `
+            <div class="bg-amber-50/70 p-2.5 rounded-xl border border-amber-200/70 space-y-1.5 mt-2">
+              <div class="flex justify-between items-center">
+                <span class="text-[10px] font-bold text-amber-900">Ayat Pembanding (Kemiripan Lafaz):</span>
+                <button type="button" onclick="addSimilarAyahToRow(${idx})" class="text-[9px] bg-white text-amber-800 font-bold px-2 py-0.5 rounded-md border border-amber-300 shadow-2xs hover:bg-amber-100">
+                  + Tambah Ayat Serupa
+                </button>
+              </div>
+              <div class="space-y-1">${rowsHTML}</div>
+            </div>
+          `;
+        }
+
+        if (currentJuz && QURAN_JUZ_MAPPING[currentJuz]) {
+          const allowed = QURAN_JUZ_MAPPING[currentJuz];
+          if (!allowed.includes(m.surahNo)) {
+            m.surahNo = allowed[0];
+          }
+        }
+
+        card.innerHTML = `
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Kendala #${idx + 1}</span>
+            <button type="button" onclick="removeMistakeRow(${idx})" class="text-rose-500 hover:text-rose-700 font-bold text-xs">Hapus</button>
+          </div>
+
+          <div class="grid grid-cols-12 gap-1.5 items-center">
+            <div class="col-span-8">
+              <label class="text-[10px] text-slate-500 block mb-0.5 font-medium">Surat yang Disetor (Juz ${currentJuz || '-'})</label>
+              <select onchange="currentMistakes[${idx}].surahNo = parseInt(this.value)" class="w-full bg-white border border-slate-200 rounded-lg p-1.5 text-[11px] font-bold focus:outline-none">
+                ${getSurahOptionsHTML(m.surahNo, currentJuz)}
+              </select>
+            </div>
+            <div class="col-span-4">
+              <label class="text-[10px] text-slate-500 block mb-0.5 font-medium">Ayat</label>
+              <input type="number" min="1" value="${m.ayah}" oninput="currentMistakes[${idx}].ayah = parseInt(this.value) || 1" class="w-full bg-white border border-slate-200 rounded-lg p-1.5 text-[11px] font-bold text-center focus:outline-none">
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[10px] text-slate-500 block mb-1 font-medium">Kategori Kendala</label>
+            <div class="grid grid-cols-3 gap-1">
+              <button type="button" onclick="currentMistakes[${idx}].type='mandeg'; renderMistakesUI();" class="py-1 rounded-lg text-[10px] font-bold border transition ${m.type === 'mandeg' ? 'bg-rose-600 text-white border-rose-600 shadow-xs' : 'bg-white text-slate-600 border-slate-200'}">
+                🔴 Mandeg
+              </button>
+              <button type="button" onclick="currentMistakes[${idx}].type='mirip'; if(!currentMistakes[${idx}].similarAyahs || !currentMistakes[${idx}].similarAyahs.length) currentMistakes[${idx}].similarAyahs=[{surahNo:2,ayah:1}]; renderMistakesUI();" class="py-1 rounded-lg text-[10px] font-bold border transition ${m.type === 'mirip' ? 'bg-amber-500 text-white border-amber-500 shadow-xs' : 'bg-white text-slate-600 border-slate-200'}">
+                🟠 Ayat Mirip
+              </button>
+              <button type="button" onclick="currentMistakes[${idx}].type='ragu'; renderMistakesUI();" class="py-1 rounded-lg text-[10px] font-bold border transition ${m.type === 'ragu' ? 'bg-yellow-500 text-white border-yellow-500 shadow-xs' : 'bg-white text-slate-600 border-slate-200'}">
+                🟡 Ragu
+              </button>
+            </div>
+          </div>
+
+          ${similarHTML}
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // ================= FUNGSI EDIT KENDALA MUTQIN =================
+    function addEditMistakeRow(data = null) {
+      const editJuz = parseInt(document.getElementById('edit-juz').value) || 1;
+      const allowedSurahs = QURAN_JUZ_MAPPING[editJuz] || [1, 2];
+      const defaultSurah = allowedSurahs[0] || 2;
+
+      const item = data || {
+        id: 'em_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        surahNo: defaultSurah,
+        ayah: 1,
+        type: 'mirip',
+        similarAyahs: [ { surahNo: 7, ayah: 1 } ]
+      };
+      editMistakes.push(item);
+      renderEditMistakesUI();
+    }
+
+    function removeEditMistakeRow(idx) {
+      editMistakes.splice(idx, 1);
+      renderEditMistakesUI();
+    }
+
+    function renderEditMistakesUI() {
+      const container = document.getElementById('edit-mistakes-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (!editMistakes.length) {
+        container.innerHTML = '<p class="text-[11px] text-emerald-700 bg-emerald-50 p-2 rounded-xl text-center font-bold">🟢 Bersih / Bebas Kendala (0 Titik Rawan)</p>';
+        return;
+      }
+
+      const editJuz = parseInt(document.getElementById('edit-juz').value) || null;
+
+      editMistakes.forEach((m, idx) => {
+        const box = document.createElement('div');
+        box.className = "bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-1.5 text-xs";
+        
+        let simBox = '';
+        if (m.type === 'mirip') {
+          const simItems = (m.similarAyahs || []).map((s, sIdx) => `
+            <div class="flex items-center gap-1 pt-1">
+              <span class="text-[9px] text-slate-400 font-bold">Mirip:</span>
+              <select onchange="editMistakes[${idx}].similarAyahs[${sIdx}].surahNo = parseInt(this.value)" class="flex-1 bg-white border border-slate-200 rounded p-1 text-[10px]">
+                ${getSurahOptionsHTML(s.surahNo, null)}
+              </select>
+              <input type="number" min="1" value="${s.ayah}" oninput="editMistakes[${idx}].similarAyahs[${sIdx}].ayah = parseInt(this.value) || 1" class="w-12 bg-white border border-slate-200 rounded p-1 text-[10px] text-center font-bold">
+            </div>
+          `).join('');
+
+          simBox = `
+            <div class="bg-amber-50 p-2 rounded-lg border border-amber-200 space-y-1">
+              <div class="flex justify-between items-center">
+                <span class="text-[9px] font-bold text-amber-900">Ayat Pembanding:</span>
+                <button type="button" onclick="if(!editMistakes[${idx}].similarAyahs) editMistakes[${idx}].similarAyahs=[]; editMistakes[${idx}].similarAyahs.push({surahNo:2,ayah:1}); renderEditMistakesUI();" class="text-[9px] bg-white text-amber-800 font-bold px-1.5 py-0.5 rounded border border-amber-300">+ Ayat</button>
+              </div>
+              ${simItems}
+            </div>
+          `;
+        }
+
+        if (editJuz && QURAN_JUZ_MAPPING[editJuz]) {
+          const allowed = QURAN_JUZ_MAPPING[editJuz];
+          if (!allowed.includes(m.surahNo)) {
+            m.surahNo = allowed[0];
+          }
+        }
+
+        box.innerHTML = `
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-bold text-slate-600">Kendala #${idx+1} (${m.type})</span>
+            <button type="button" onclick="removeEditMistakeRow(${idx})" class="text-rose-500 font-bold text-[10px]">Hapus</button>
+          </div>
+          <div class="grid grid-cols-12 gap-1 items-center">
+            <div class="col-span-8">
+              <select onchange="editMistakes[${idx}].surahNo = parseInt(this.value)" class="w-full bg-white border border-slate-200 rounded p-1 text-[10px] font-bold">
+                ${getSurahOptionsHTML(m.surahNo, editJuz)}
+              </select>
+            </div>
+            <div class="col-span-4">
+              <input type="number" min="1" value="${m.ayah}" oninput="editMistakes[${idx}].ayah = parseInt(this.value) || 1" placeholder="Ayat" class="w-full bg-white border border-slate-200 rounded p-1 text-[10px] text-center font-bold">
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-1">
+            <button type="button" onclick="editMistakes[${idx}].type='mandeg'; renderEditMistakesUI();" class="py-0.5 rounded text-[9px] font-bold border ${m.type === 'mandeg' ? 'bg-rose-600 text-white' : 'bg-white text-slate-600'}">Mandeg</button>
+            <button type="button" onclick="editMistakes[${idx}].type='mirip'; if(!editMistakes[${idx}].similarAyahs || !editMistakes[${idx}].similarAyahs.length) editMistakes[${idx}].similarAyahs=[{surahNo:2,ayah:1}]; renderEditMistakesUI();" class="py-0.5 rounded text-[9px] font-bold border ${m.type === 'mirip' ? 'bg-amber-500 text-white' : 'bg-white text-slate-600'}">Ayat Mirip</button>
+            <button type="button" onclick="editMistakes[${idx}].type='ragu'; renderEditMistakesUI();" class="py-0.5 rounded text-[9px] font-bold border ${m.type === 'ragu' ? 'bg-yellow-500 text-white' : 'bg-white text-slate-600'}">Ragu</button>
+          </div>
+          ${simBox}
+        `;
+        container.appendChild(box);
+      });
+    }
+
+    function setPillar(pillar) {
+      selectedPillar = pillar;
+      document.querySelectorAll('.pillar-btn').forEach(btn => {
+        const active = btn.dataset.pillar === pillar;
+        btn.className = active 
+          ? "pillar-btn bg-teal-600 border border-teal-600 text-white font-bold py-2 rounded-xl text-xs transition shadow-sm"
+          : "pillar-btn bg-slate-50 border border-slate-200 text-slate-600 py-2 rounded-xl text-xs transition";
+      });
+
+      const fieldZiyadah = document.getElementById('field-ziyadah-group');
+      const fieldJuz = document.getElementById('field-juz-group');
+      const fieldQuality = document.getElementById('field-quality-group');
+      const fieldMutqinDetails = document.getElementById('field-mutqin-details-group');
+
+      if (pillar === 'Ziyadah') {
+        fieldZiyadah.classList.remove('hidden');
+        fieldJuz.classList.add('hidden');
+      } else if (pillar === 'Ulang 7 Hari') {
+        fieldZiyadah.classList.add('hidden');
+        fieldJuz.classList.remove('hidden');
+        fieldQuality.classList.remove('hidden');
+        fieldMutqinDetails.classList.add('hidden');
+        renderUlangMistakesUI();
+      } else {
+        fieldZiyadah.classList.add('hidden');
+        fieldJuz.classList.remove('hidden');
+        fieldQuality.classList.add('hidden');
+        fieldMutqinDetails.classList.remove('hidden');
+        renderMistakesUI();
+      }
+    }
+
+    async function submitLog() {
+      const targetStudentId = getActiveMudawamahStudentId();
+      let newLog = {
+        user_id: currentUser.id,
+        pillar: selectedPillar
+      };
+      if (targetStudentId) {
+        newLog.student_id = targetStudentId;
+      }
+
+      if (selectedPillar === 'Ziyadah') {
+        const surahNo = parseInt(document.getElementById('input-surah').value);
+        const aStart = parseInt(document.getElementById('input-ayah-start').value);
+        const aEnd = parseInt(document.getElementById('input-ayah-end').value);
+        const repetition = parseInt(document.getElementById('input-repetition').value) || 1;
+
+        if (!surahNo || !aStart || !aEnd) return showToast("Mohon lengkapi Surat & Ayat", true);
+        if (aStart > aEnd) return showToast("Ayat awal tidak boleh lebih besar dari ayat akhir", true);
+
+        const res = calculateMushafLinesAndPages(surahNo, aStart, aEnd);
+
+        newLog.surah_number = surahNo;
+        newLog.surah = `QS. ${res.surahName}`;
+        newLog.ayah_start = aStart;
+        newLog.ayah_end = aEnd;
+        newLog.page_start = res.pageStart;
+        newLog.page_end = res.pageEnd;
+        newLog.page = res.pageStart;
+        newLog.lines_total = res.totalLines;
+        newLog.portion_value = res.portionValue;
+        newLog.repetition_count = repetition;
+        newLog.portion = `${res.totalLines} Baris`;
+        newLog.quality = "-";
+        newLog.notes = `Diulang ${repetition}x hingga lancar / menutup mushaf`;
+
+      } else if (selectedPillar === 'Ulang 7 Hari') {
+        const juz = parseInt(document.getElementById('input-juz-single').value);
+        if (!juz || juz < 1 || juz > 30) return showToast("Nomor Juz (1-30) tidak valid", true);
+        
+        const totalMistakes = currentUlangMistakes.length;
+        const autoEval = getAutoQuality(totalMistakes);
+
+        newLog.juz = juz;
+        newLog.mistakes_count = totalMistakes;
+        newLog.mistake_details = currentUlangMistakes;
+        newLog.quality = autoEval.quality;
+
+        if (totalMistakes === 0) {
+          newLog.notes = "🟢 Lancar (0 Kesalahan/Lupa)";
+        } else {
+          const listStr = currentUlangMistakes.map(m => {
+            const sObj = QURAN_SURAHS.find(s => s.no === m.surahNo);
+            const sName = sObj ? sObj.name : `Surat ${m.surahNo}`;
+            return `${sName}:${m.ayah}`;
+          }).join(', ');
+          newLog.notes = `${autoEval.label} (${totalMistakes} Salah: ${listStr})`;
+        }
+
+      } else {
+        const juz = parseInt(document.getElementById('input-juz-single').value);
+        if (!juz || juz < 1 || juz > 30) return showToast("Nomor Juz (1-30) tidak valid", true);
+
+        const totalMistakes = currentMistakes.length;
+        newLog.juz = juz;
+        newLog.quality = totalMistakes === 0 ? "Hijau" : "Kuning";
+        newLog.mistakes_count = totalMistakes;
+        newLog.mistake_details = currentMistakes;
+
+        if (totalMistakes === 0) {
+          newLog.notes = "🟢 Mumtaz (0 Titik Rawan)";
+        } else {
+          const summaryArr = currentMistakes.map(m => {
+            const sName = (QURAN_SURAHS.find(s => s.no === m.surahNo) || {}).name || `Surat ${m.surahNo}`;
+            if (m.type === 'mirip') {
+              const simStr = (m.similarAyahs || []).map(sa => {
+                const saName = (QURAN_SURAHS.find(s => s.no === sa.surahNo) || {}).name || `Surat ${sa.surahNo}`;
+                return `${saName}:${sa.ayah}`;
+              }).join(', ');
+              return `🟠 ${sName}:${m.ayah} (Mirip ${simStr})`;
+            } else if (m.type === 'mandeg') {
+              return `🔴 ${sName}:${m.ayah} (Mandeg)`;
+            } else {
+              return `🟡 ${sName}:${m.ayah} (Ragu)`;
+            }
+          });
+          newLog.notes = summaryArr.join(' | ');
+        }
+      }
+
+      let { data, error } = await sb.from('mudawamah_logs').insert([newLog]).select();
+      if (error && newLog.student_id && error.message.includes('student_id')) {
+        delete newLog.student_id;
+        const retry = await sb.from('mudawamah_logs').insert([newLog]).select();
+        data = retry.data;
+        error = retry.error;
+      }
+      if (error) return showToast("Gagal menyimpan: " + error.message, true);
+
+      currentMistakes = [];
+      currentUlangMistakes = [];
+      renderMistakesUI();
+      renderUlangMistakesUI();
+
+      showToast("Setoran berhasil disimpan!");
+      await fetchUserLogs();
+      updateUI();
+    }
+
+    async function deleteLog(id) {
+      if (!confirm("Hapus catatan setoran ini?")) return;
+      const { error } = await sb.from('mudawamah_logs').delete().eq('id', id);
+      if (error) return showToast(error.message, true);
+      showToast("Setoran dihapus.");
+      await fetchUserLogs();
+      updateUI();
+    }
+
+    function openEditModal(id) {
+      const log = userLogs.find(l => l.id === id);
+      if (!log) return;
+
+      document.getElementById('edit-log-id').value = log.id;
+      document.getElementById('edit-pillar').value = (log.pillar === 'Hafizh Mutqin' ? 'Mutqin' : log.pillar);
+
+      const ziyadahGroup = document.getElementById('edit-ziyadah-group');
+      const juzGroup = document.getElementById('edit-juz-group');
+      const ulangGroup = document.getElementById('edit-ulang-group');
+      const mutqinGroup = document.getElementById('edit-mutqin-group');
+
+      if (log.pillar === 'Ziyadah') {
+        ziyadahGroup.classList.remove('hidden');
+        juzGroup.classList.add('hidden');
+
+        let detectedSurahNo = log.surah_number;
+        if (!detectedSurahNo && log.surah) {
+          const cleanName = log.surah.replace(/^QS\.\s*/i, '').trim().toLowerCase();
+          const match = QURAN_SURAHS.find(s => s.name.toLowerCase() === cleanName);
+          if (match) detectedSurahNo = match.no;
+        }
+        if (!detectedSurahNo && log.page) {
+          const matchPage = QURAN_SURAHS.find(s => log.page >= s.startPage && log.page <= s.endPage);
+          if (matchPage) detectedSurahNo = matchPage.no;
+        }
+
+        const surahEl = document.getElementById('edit-surah');
+        if (surahEl) surahEl.value = String(detectedSurahNo || 2);
+
+        document.getElementById('edit-ayah-start').value = log.ayah_start || 1;
+        document.getElementById('edit-ayah-end').value = log.ayah_end || 5;
+        document.getElementById('edit-repetition').value = log.repetition_count || 1;
+        
+        onEditSurahChange();
+
+      } else {
+        ziyadahGroup.classList.add('hidden');
+        juzGroup.classList.remove('hidden');
+        document.getElementById('edit-juz').value = log.juz || 1;
+
+        if (log.pillar === 'Ulang 7 Hari') {
+          ulangGroup.classList.remove('hidden');
+          mutqinGroup.classList.add('hidden');
+          editUlangMistakes = Array.isArray(log.mistake_details) ? JSON.parse(JSON.stringify(log.mistake_details)) : [];
+          renderEditUlangMistakesUI();
+        } else {
+          ulangGroup.classList.add('hidden');
+          mutqinGroup.classList.remove('hidden');
+          editMistakes = Array.isArray(log.mistake_details) ? JSON.parse(JSON.stringify(log.mistake_details)) : [];
+          renderEditMistakesUI();
+        }
+      }
+
+      document.getElementById('edit-modal').classList.remove('hidden');
+    }
+
+    function closeEditModal() { document.getElementById('edit-modal').classList.add('hidden'); }
+
+    async function saveEditLog() {
+      const id = document.getElementById('edit-log-id').value;
+      const log = userLogs.find(l => l.id === id);
+      if (!log) return;
+
+      let updatePayload = {};
+
+      if (log.pillar === 'Ziyadah') {
+        const surahNo = parseInt(document.getElementById('edit-surah').value);
+        const aStart = parseInt(document.getElementById('edit-ayah-start').value);
+        const aEnd = parseInt(document.getElementById('edit-ayah-end').value);
+        const rep = parseInt(document.getElementById('edit-repetition').value) || 1;
+
+        if (!surahNo || !aStart || !aEnd) return showToast("Surat & Ayat tidak valid", true);
+        if (aStart > aEnd) return showToast("Ayat awal lebih besar dari akhir", true);
+
+        const res = calculateMushafLinesAndPages(surahNo, aStart, aEnd);
+
+        updatePayload.surah_number = surahNo;
+        updatePayload.surah = `QS. ${res.surahName}`;
+        updatePayload.ayah_start = aStart;
+        updatePayload.ayah_end = aEnd;
+        updatePayload.page_start = res.pageStart;
+        updatePayload.page_end = res.pageEnd;
+        updatePayload.page = res.pageStart;
+        updatePayload.lines_total = res.totalLines;
+        updatePayload.portion_value = res.portionValue;
+        updatePayload.repetition_count = rep;
+        updatePayload.portion = `${res.totalLines} Baris`;
+        updatePayload.notes = `Diulang ${rep}x hingga lancar / menutup mushaf`;
+
+      } else {
+        const juz = parseInt(document.getElementById('edit-juz').value);
+        if (!juz || juz < 1 || juz > 30) return showToast("Juz tidak valid", true);
+        updatePayload.juz = juz;
+
+        if (log.pillar === 'Ulang 7 Hari') {
+          const totalM = editUlangMistakes.length;
+          const autoEval = getAutoQuality(totalM);
+          updatePayload.mistakes_count = totalM;
+          updatePayload.mistake_details = editUlangMistakes;
+          updatePayload.quality = autoEval.quality;
+
+          if (totalM === 0) {
+            updatePayload.notes = "🟢 Lancar (0 Kesalahan/Lupa)";
+          } else {
+            const listStr = editUlangMistakes.map(m => {
+              const sObj = QURAN_SURAHS.find(s => s.no === m.surahNo);
+              const sName = sObj ? sObj.name : `Surat ${m.surahNo}`;
+              return `${sName}:${m.ayah}`;
+            }).join(', ');
+            updatePayload.notes = `${autoEval.label} (${totalM} Salah: ${listStr})`;
+          }
+        } else {
+          updatePayload.mistake_details = editMistakes;
+          updatePayload.mistakes_count = editMistakes.length;
+          updatePayload.quality = editMistakes.length === 0 ? "Hijau" : "Kuning";
+
+          if (editMistakes.length === 0) {
+            updatePayload.notes = "🟢 Mumtaz (0 Titik Rawan)";
+          } else {
+            const sumArr = editMistakes.map(m => {
+              const sName = (QURAN_SURAHS.find(s => s.no === m.surahNo) || {}).name || `Surat ${m.surahNo}`;
+              return `${m.type}: ${sName}:${m.ayah}`;
+            });
+            updatePayload.notes = sumArr.join(' | ');
+          }
+        }
+      }
+
+      const { error } = await sb.from('mudawamah_logs').update(updatePayload).eq('id', id);
+      if (error) return showToast("Gagal update: " + error.message, true);
+
+      closeEditModal();
+      showToast("Perubahan berhasil disimpan!");
+      await fetchUserLogs();
+      updateUI();
+    }
+
+    function calculateMudaStreaks(logs) {
+      if (!logs.length) return { current: 0, longest: 0, average: 0 };
+
+      const dateSet = new Set();
+      logs.forEach(l => {
+        const d = new Date(l.created_at);
+        const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        dateSet.add(dStr);
+      });
+
+      const sortedDates = Array.from(dateSet).sort();
+      if (!sortedDates.length) return { current: 0, longest: 0, average: 0 };
+
+      let longest = 0;
+      let tempStreak = 0;
+      let streakList = [];
+
+      for (let i = 0; i < sortedDates.length; i++) {
+        if (i === 0) {
+          tempStreak = 1;
+        } else {
+          const prev = new Date(sortedDates[i - 1]);
+          const curr = new Date(sortedDates[i]);
+          const diffDays = Math.round((curr - prev) / (1000 * 60 * 60 * 24));
+
+          if (diffDays === 1) {
+            tempStreak++;
+          } else {
+            streakList.push(tempStreak);
+            tempStreak = 1;
+          }
+        }
+        if (tempStreak > longest) longest = tempStreak;
+      }
+      if (tempStreak > 0) streakList.push(tempStreak);
+
+      const average = streakList.length ? Math.round(streakList.reduce((a, b) => a + b, 0) / streakList.length) : 0;
+
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+      const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
+      let current = 0;
+      let anchorDate = null;
+
+      if (dateSet.has(todayStr)) {
+        anchorDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      } else if (dateSet.has(yesterdayStr)) {
+        anchorDate = yesterday;
+      }
+
+      if (anchorDate) {
+        let checkDate = anchorDate;
+        while (true) {
+          const checkStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
+          if (dateSet.has(checkStr)) {
+            current++;
+            checkDate = new Date(checkDate.getFullYear(), checkDate.getMonth(), checkDate.getDate() - 1);
+          } else {
+            break;
+          }
+        }
+      }
+
+      return { current, longest, average };
+    }
+
+    function updateUI() {
+      const mutqinLogs = userLogs.filter(l => l.juz && (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin'));
+      const mutqinJuzSet = new Set(mutqinLogs.map(l => l.juz));
+      const totalMutqinJuz = mutqinJuzSet.size;
+      const mutqinPages = totalMutqinJuz * 20;
+
+      document.getElementById('stat-combined-mutqin').innerText = `${totalMutqinJuz} / 30 Juz`;
+      document.getElementById('stat-mutqin-pages-sub').innerText = `${mutqinPages} / 604 Hal`;
+
+      const todayString = new Date().toDateString();
+      const todayLogs = userLogs.filter(l => new Date(l.created_at).toDateString() === todayString);
+      const todayZiyadah = todayLogs.filter(l => l.pillar === 'Ziyadah').length;
+      const todayMutqin = todayLogs.filter(l => l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin').length;
+
+      document.getElementById('stat-today-ziyadah').innerText = `${todayZiyadah} Kali`;
+      document.getElementById('stat-today-mutqin').innerText = `${todayMutqin} Kali`;
+
+      const streaks = calculateMudaStreaks(userLogs);
+      document.getElementById('streak-current-val').innerText = `${streaks.current} Hari`;
+      document.getElementById('streak-longest-val').innerText = `${streaks.longest} Hari`;
+      document.getElementById('streak-avg-val').innerText = `± ${streaks.average} Hari`;
+
+      renderMutqinMilestones();
+      renderRecent7Days();
+      renderPeriodicStats();
+    }
+
+    // ================= TAB REKAM JEJAK JUZ MUTQIN & PEMUTIHAN =================
+    function renderMutqinMilestones() {
+      const validMutqinLogs = userLogs.filter(l => l.juz && (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin'));
+
+      const totalCumulativeMutqinSetoran = validMutqinLogs.length;
+      const elCumulative = document.getElementById('mutqin-cumulative-rounds');
+      if (elCumulative) {
+        elCumulative.innerText = `${totalCumulativeMutqinSetoran}x Setor`;
+      }
+
+      const juzStats = {};
+      validMutqinLogs.forEach(l => {
+        const juz = l.juz;
+        const time = new Date(l.created_at).getTime();
+
+        if (!juzStats[juz]) {
+          juzStats[juz] = {
+            juz: juz,
+            history: [],
+            firstDate: new Date(l.created_at),
+            firstTime: time,
+            latestDate: new Date(l.created_at),
+            latestTime: time,
+            latestLog: l,
+            count: 0
+          };
+        }
+
+        juzStats[juz].history.push(l);
+        juzStats[juz].count += 1;
+        if (time < juzStats[juz].firstTime) {
+          juzStats[juz].firstTime = time;
+          juzStats[juz].firstDate = new Date(l.created_at);
+        }
+        if (time >= juzStats[juz].latestTime) {
+          juzStats[juz].latestTime = time;
+          juzStats[juz].latestDate = new Date(l.created_at);
+          juzStats[juz].latestLog = l;
+        }
+      });
+
+      const milestoneArray = Object.values(juzStats).sort((a, b) => a.firstTime - b.firstTime);
+
+      const uniqueJuzCount = milestoneArray.length;
+      document.getElementById('mutqin-summary-badge').innerText = `${uniqueJuzCount} / 30 Juz`;
+      document.getElementById('mutqin-total-count').innerText = `${uniqueJuzCount} Juz`;
+
+      const listContainer = document.getElementById('mutqin-milestone-list');
+      listContainer.innerHTML = '';
+
+      if (milestoneArray.length === 0) {
+        listContainer.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-5">Belum ada Juz yang disahkan lewat pilar Mutqin.</p>';
+        document.getElementById('mutqin-avg-gap').innerText = `- Hari`;
+        return;
+      }
+
+      let totalGapDays = 0;
+      let gapCalculatedCount = 0;
+
+      milestoneArray.forEach((item, index) => {
+        item.history.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+        let lastRoundGapText = '-';
+        let avgCycleText = '-';
+
+        if (item.history.length > 1) {
+          const lastIdx = item.history.length - 1;
+          const diffLastMs = new Date(item.history[lastIdx].created_at).getTime() - new Date(item.history[lastIdx - 1].created_at).getTime();
+          const diffLastDays = Math.max(0, Math.round(diffLastMs / (1000 * 60 * 60 * 24)));
+          lastRoundGapText = `${diffLastDays} hari lalu`;
+
+          let totalIntraCycle = 0;
+          for (let k = 1; k < item.history.length; k++) {
+            const dMs = new Date(item.history[k].created_at).getTime() - new Date(item.history[k - 1].created_at).getTime();
+            totalIntraCycle += Math.max(0, Math.round(dMs / (1000 * 60 * 60 * 24)));
+          }
+          const avgIntra = Math.round(totalIntraCycle / (item.history.length - 1));
+          avgCycleText = `±${avgIntra} hari/siklus`;
+        }
+
+        let gapBadge = '';
+        if (index === 0) {
+          gapBadge = '<span class="text-[9px] bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded-full border border-slate-200">🏁 Awal</span>';
+        } else {
+          const prevItem = milestoneArray[index - 1];
+          const diffMs = item.firstTime - prevItem.firstTime;
+          const diffDays = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+          totalGapDays += diffDays;
+          gapCalculatedCount++;
+
+          gapBadge = `<span class="text-[9px] bg-amber-50 text-amber-700 font-bold px-2 py-0.5 rounded-full border border-amber-200">⚡ Gap Juz: ${diffDays} Hari</span>`;
+        }
+
+        const dateStr = item.firstDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        const roundBadge = `<span class="text-[9px] bg-emerald-50 text-emerald-800 font-extrabold px-2 py-0.5 rounded-full border border-emerald-200 shadow-2xs">🔄 Putaran ke-${item.count}</span>`;
+
+        // SISTEM EVALUASI PEMUTIHAN: Berdasarkan setoran mutqin terbaru
+        const latestL = item.latestLog;
+        const details = Array.isArray(latestL.mistake_details) ? latestL.mistake_details : [];
+        const mistakeCount = latestL.mistakes_count !== undefined ? latestL.mistakes_count : details.length;
+
+        let titikRawanHTML = '';
+        if (mistakeCount === 0) {
+          titikRawanHTML = `
+            <div class="mt-2 bg-emerald-50/90 border border-emerald-200 p-2.5 rounded-xl flex items-center justify-between text-[10px]">
+              <span class="text-emerald-800 font-extrabold flex items-center gap-1">
+                <span>🟢</span> Mumtaz Bersih (Titik rawan sebelumnya telah diputihkan)
+              </span>
+              <span class="text-[9px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-bold">Teruji Lancar</span>
+            </div>
+          `;
+        } else {
+          const listItems = details.map(m => {
+            const sName = (QURAN_SURAHS.find(s => s.no === m.surahNo) || {}).name || `Surat ${m.surahNo}`;
+            if (m.type === 'mirip') {
+              const simText = (m.similarAyahs || []).map(sa => {
+                const saName = (QURAN_SURAHS.find(s => s.no === sa.surahNo) || {}).name || `Surat ${sa.surahNo}`;
+                return `${saName}:${sa.ayah}`;
+              }).join(' & ');
+              return `
+                <div class="bg-white p-2 rounded-lg border border-amber-200/70 space-y-0.5">
+                  <div class="flex items-center gap-1.5 font-bold text-amber-900">
+                    <span class="text-amber-500">🟠 [Ayat Mirip]</span>
+                    <span>QS. ${sName}:${m.ayah}</span>
+                  </div>
+                  <p class="text-[10px] text-slate-500 pl-4 font-medium">
+                    Rawan tertukar dengan: <span class="font-bold text-amber-800 font-mono">${simText || '-'}</span>
+                  </p>
+                </div>
+              `;
+            } else if (m.type === 'mandeg') {
+              return `
+                <div class="bg-white p-2 rounded-lg border border-rose-200/70 space-y-0.5">
+                  <div class="flex items-center gap-1.5 font-bold text-rose-800">
+                    <span class="text-rose-600">🔴 [Mandeg / Lupa Total]</span>
+                    <span>QS. ${sName}:${m.ayah}</span>
+                  </div>
+                </div>
+              `;
+            } else {
+              return `
+                <div class="bg-white p-2 rounded-lg border border-yellow-200/70 space-y-0.5">
+                  <div class="flex items-center gap-1.5 font-bold text-yellow-900">
+                    <span class="text-yellow-600">🟡 [Ragu / Goyang]</span>
+                    <span>QS. ${sName}:${m.ayah}</span>
+                  </div>
+                </div>
+              `;
+            }
+          }).join('');
+
+          titikRawanHTML = `
+            <div class="mt-2.5 bg-gradient-to-br from-amber-50/80 to-rose-50/40 p-2.5 rounded-2xl border border-amber-200/80 space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-900 flex items-center gap-1">
+                  <span>⚠️</span> Catatan Titik Rawan Terkini (Belum Diputihkan)
+                </span>
+                <span class="text-[9px] bg-white text-rose-700 font-bold px-2 py-0.5 rounded-full border border-rose-200">${mistakeCount} Titik Rawan</span>
+              </div>
+              <div class="space-y-1.5 pt-0.5">${listItems || `<p class="text-[10px] text-slate-600 italic">${latestL.notes || 'Ada catatan kendala'}</p>`}</div>
+            </div>
+          `;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'bg-slate-50 p-3.5 rounded-2xl border border-slate-100 text-xs shadow-2xs space-y-2';
+        card.innerHTML = `
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center font-black text-amber-700 text-xs">
+                ${item.juz}
+              </div>
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="font-bold text-slate-800">Juz ${item.juz}</span>
+                  ${roundBadge}
+                </div>
+                <p class="text-[10px] text-slate-400 mt-0.5">Disahkan: ${dateStr}</p>
+              </div>
+            </div>
+            <div>${gapBadge}</div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200/60 text-[10px]">
+            <div class="bg-white p-1.5 rounded-xl border border-slate-200 flex justify-between items-center">
+              <span class="text-slate-500">Jarak Putaran Terakhir:</span>
+              <span class="font-bold text-teal-800 font-mono">${lastRoundGapText}</span>
+            </div>
+            <div class="bg-white p-1.5 rounded-xl border border-slate-200 flex justify-between items-center">
+              <span class="text-slate-500">Rata-rata Siklus:</span>
+              <span class="font-bold text-teal-800 font-mono">${avgCycleText}</span>
+            </div>
+          </div>
+
+          ${titikRawanHTML}
+        `;
+        listContainer.appendChild(card);
+      });
+
+      if (gapCalculatedCount > 0) {
+        const avg = Math.round(totalGapDays / gapCalculatedCount);
+        document.getElementById('mutqin-avg-gap').innerText = `± ${avg} Hari`;
+      } else {
+        document.getElementById('mutqin-avg-gap').innerText = `1 Juz Tuntas`;
+      }
+    }
+
+    function setStatsPeriod(period) {
+      activeStatsPeriod = period;
+      ['daily', 'weekly', 'monthly', 'yearly', 'lifetime'].forEach(p => {
+        const btn = document.getElementById(`btn-period-${p}`);
+        if (btn) {
+          btn.className = p === period 
+            ? "px-2 py-1 rounded-lg bg-white text-teal-700 shadow-sm font-bold" 
+            : "px-2 py-1 rounded-lg text-slate-500 hover:text-slate-800 font-medium";
+        }
+      });
+      renderPeriodicStats();
+    }
+
+    function calculateCleanZiyadahPages(logs) {
+      const pageSet = new Set();
+      logs.filter(l => l.pillar === 'Ziyadah').forEach(l => {
+        const pStart = l.page_start || l.page || 1;
+        const pEnd = l.page_end || pStart;
+        for (let p = pStart; p <= pEnd; p++) {
+          pageSet.add(p);
+        }
+      });
+      return Math.min(604, pageSet.size);
+    }
+
+    function renderPeriodicStats() {
+      const now = new Date();
+      let filteredLogs = [];
+      let labels = [];
+      let ziyadahEffortPages = [];
+      let ulangPages = [];
+      let mutqinPages = [];
+
+      if (activeStatsPeriod === 'daily') {
+        document.getElementById('stat-period-desc').innerText = "Harian (Per Jam Hari Ini)";
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+        filteredLogs = userLogs.filter(l => new Date(l.created_at) >= todayStart);
+
+        labels = ['00-06', '06-09', '09-12', '12-15', '15-18', '18-21', '21-24'];
+        ziyadahEffortPages = new Array(7).fill(0);
+        ulangPages = new Array(7).fill(0);
+        mutqinPages = new Array(7).fill(0);
+
+        filteredLogs.forEach(l => {
+          const h = new Date(l.created_at).getHours();
+          let idx = 0;
+          if (h >= 6 && h < 9) idx = 1;
+          else if (h >= 9 && h < 12) idx = 2;
+          else if (h >= 12 && h < 15) idx = 3;
+          else if (h >= 15 && h < 18) idx = 4;
+          else if (h >= 18 && h < 21) idx = 5;
+          else if (h >= 21) idx = 6;
+
+          if (l.pillar === 'Ziyadah') {
+            const basePortion = parseFloat(l.portion_value || 1.0);
+            const reps = parseInt(l.repetition_count || 1);
+            ziyadahEffortPages[idx] += (basePortion * reps);
+          } else if (l.pillar === 'Ulang 7 Hari') {
+            ulangPages[idx] += 20;
+          } else if (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin') {
+            mutqinPages[idx] += 20;
+          }
+        });
+
+      } else if (activeStatsPeriod === 'weekly') {
+        document.getElementById('stat-period-desc').innerText = "Pekan Ini (7 Hari Terakhir)";
+        const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+        const dayMap = {};
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          labels.push(`${dayNames[d.getDay()]} (${d.getDate()})`);
+          dayMap[key] = labels.length - 1;
+        }
+
+        const startSevenDays = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0);
+        filteredLogs = userLogs.filter(l => new Date(l.created_at) >= startSevenDays);
+
+        ziyadahEffortPages = new Array(7).fill(0);
+        ulangPages = new Array(7).fill(0);
+        mutqinPages = new Array(7).fill(0);
+
+        filteredLogs.forEach(l => {
+          const ld = new Date(l.created_at);
+          const key = `${ld.getFullYear()}-${String(ld.getMonth() + 1).padStart(2, '0')}-${String(ld.getDate()).padStart(2, '0')}`;
+          const idx = dayMap[key];
+          if (idx !== undefined) {
+            if (l.pillar === 'Ziyadah') {
+              ziyadahEffortPages[idx] += (parseFloat(l.portion_value || 1.0) * parseInt(l.repetition_count || 1));
+            } else if (l.pillar === 'Ulang 7 Hari') {
+              ulangPages[idx] += 20;
+            } else if (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin') {
+              mutqinPages[idx] += 20;
+            }
+          }
+        });
+
+      } else if (activeStatsPeriod === 'monthly') {
+        document.getElementById('stat-period-desc').innerText = `Bulan ${now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`;
+        filteredLogs = userLogs.filter(l => {
+          const d = new Date(l.created_at);
+          return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        });
+
+        labels = ['Pekan 1 (1-7)', 'Pekan 2 (8-14)', 'Pekan 3 (15-21)', 'Pekan 4 (22-dst)'];
+        ziyadahEffortPages = [0, 0, 0, 0];
+        ulangPages = [0, 0, 0, 0];
+        mutqinPages = [0, 0, 0, 0];
+
+        filteredLogs.forEach(l => {
+          const date = new Date(l.created_at).getDate();
+          const wIdx = Math.min(3, Math.floor((date - 1) / 7));
+          if (l.pillar === 'Ziyadah') {
+            ziyadahEffortPages[wIdx] += (parseFloat(l.portion_value || 1.0) * parseInt(l.repetition_count || 1));
+          } else if (l.pillar === 'Ulang 7 Hari') {
+            ulangPages[wIdx] += 20;
+          } else if (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin') {
+            mutqinPages[wIdx] += 20;
+          }
+        });
+
+      } else if (activeStatsPeriod === 'yearly') {
+        document.getElementById('stat-period-desc').innerText = `Tahun ${now.getFullYear()}`;
+        filteredLogs = userLogs.filter(l => new Date(l.created_at).getFullYear() === now.getFullYear());
+        labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        ziyadahEffortPages = new Array(12).fill(0);
+        ulangPages = new Array(12).fill(0);
+        mutqinPages = new Array(12).fill(0);
+
+        filteredLogs.forEach(l => {
+          const m = new Date(l.created_at).getMonth();
+          if (l.pillar === 'Ziyadah') {
+            ziyadahEffortPages[m] += (parseFloat(l.portion_value || 1.0) * parseInt(l.repetition_count || 1));
+          } else if (l.pillar === 'Ulang 7 Hari') {
+            ulangPages[m] += 20;
+          } else if (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin') {
+            mutqinPages[m] += 20;
+          }
+        });
+
+      } else {
+        document.getElementById('stat-period-desc').innerText = "Rekap Seumur Hidup (Seluruh Masa Studi)";
+        filteredLogs = [...userLogs];
+
+        const yearsSet = new Set(userLogs.map(l => new Date(l.created_at).getFullYear()));
+        if (yearsSet.size === 0) yearsSet.add(now.getFullYear());
+        const sortedYears = Array.from(yearsSet).sort((a, b) => a - b);
+        labels = sortedYears.map(y => `Thn ${y}`);
+
+        ziyadahEffortPages = new Array(sortedYears.length).fill(0);
+        ulangPages = new Array(sortedYears.length).fill(0);
+        mutqinPages = new Array(sortedYears.length).fill(0);
+
+        filteredLogs.forEach(l => {
+          const yIdx = sortedYears.indexOf(new Date(l.created_at).getFullYear());
+          if (yIdx !== -1) {
+            if (l.pillar === 'Ziyadah') {
+              ziyadahEffortPages[yIdx] += (parseFloat(l.portion_value || 1.0) * parseInt(l.repetition_count || 1));
+            } else if (l.pillar === 'Ulang 7 Hari') {
+              ulangPages[yIdx] += 20;
+            } else if (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin') {
+              mutqinPages[yIdx] += 20;
+            }
+          }
+        });
+      }
+
+      const cleanZiyadahHalaman = calculateCleanZiyadahPages(filteredLogs);
+      const frekuensiUlangCount = filteredLogs.filter(l => l.pillar === 'Ulang 7 Hari').length;
+      const frekuensiMutqinCount = filteredLogs.filter(l => l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin').length;
+
+      document.getElementById('stat-period-ziyadah').innerText = `${cleanZiyadahHalaman} Hal`;
+      document.getElementById('stat-period-ulang').innerText = `${frekuensiUlangCount} Kali`;
+      document.getElementById('stat-period-mutqin').innerText = `${frekuensiMutqinCount} Kali`;
+
+      const canvasEl = document.getElementById('periodChart');
+      if (!canvasEl) return;
+      const ctx = canvasEl.getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Ziyadah (Hal x Diulang)',
+              data: ziyadahEffortPages.map(v => parseFloat(v.toFixed(1))),
+              backgroundColor: '#0d9488',
+              borderRadius: 5,
+              barPercentage: 0.85,
+              categoryPercentage: 0.75
+            },
+            {
+              label: 'Ulang 7 Hari (20 Hal/Setor)',
+              data: ulangPages,
+              backgroundColor: '#6366f1',
+              borderRadius: 5,
+              barPercentage: 0.85,
+              categoryPercentage: 0.75
+            },
+            {
+              label: 'Mutqin (20 Hal/Setor)',
+              data: mutqinPages,
+              backgroundColor: '#f59e0b',
+              borderRadius: 5,
+              barPercentage: 0.85,
+              categoryPercentage: 0.75
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { 
+            legend: { 
+              display: true,
+              position: 'top',
+              labels: { boxWidth: 8, font: { size: 9, weight: 'bold' }, color: '#475569' }
+            } 
+          },
+          scales: {
+            y: { 
+              beginAtZero: true, 
+              grid: { color: '#f1f5f9' }, 
+              ticks: { color: '#94a3b8', font: { size: 9 }, stepSize: 5 } 
+            },
+            x: { 
+              grid: { display: false }, 
+              ticks: { color: '#64748b', font: { size: 8 } } 
+            }
+          }
+        }
+      });
+    }
+
+    function renderRecent7Days() {
+      const container = document.getElementById('recent-logs-list');
+      container.innerHTML = '';
+
+      const now = new Date();
+      const sevenDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0);
+
+      const logs7Days = userLogs.filter(l => new Date(l.created_at) >= sevenDaysAgo);
+
+      if (!logs7Days.length) {
+        container.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-5">Belum ada setoran dalam 7 hari terakhir.</p>';
+        return;
+      }
+
+      logs7Days.forEach(l => {
+        const el = document.createElement('div');
+        el.className = 'bg-slate-50 p-3 rounded-2xl border border-slate-100 flex justify-between items-center text-xs';
+        
+        let detailText = '';
+        let badge = '';
+
+        if (l.pillar === 'Ziyadah') {
+          const surahName = l.surah || "Al-Qur'an";
+          const ayahRange = (l.ayah_start && l.ayah_end) ? `Ayat ${l.ayah_start}-${l.ayah_end}` : `Hal. ${l.page}`;
+          const reps = l.repetition_count || 1;
+          detailText = `${surahName} • ${ayahRange}`;
+          badge = `<span class="text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full font-bold text-[10px]">🔁 ${reps}x Ulang</span>`;
+        } else if (l.pillar === 'Ulang 7 Hari') {
+          detailText = `Juz ${l.juz} • Ulang 7 Hari`;
+          const mCount = l.mistakes_count !== undefined ? `${l.mistakes_count} Salah` : l.quality;
+          badge = l.quality === 'Hijau' 
+            ? `<span class="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-bold text-[10px]">🟢 ${mCount}</span>` 
+            : (l.quality === 'Kuning' ? `<span class="text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full font-bold text-[10px]">🟡 ${mCount}</span>` : `<span class="text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full font-bold text-[10px]">🔴 ${mCount}</span>`);
+        } else {
+          const mistakes = l.mistakes_count || 0;
+          detailText = `Juz ${l.juz} • Ujian Mutqin`;
+          badge = mistakes === 0 
+            ? `<span class="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-bold text-[10px]">🟢 Mumtaz</span>`
+            : `<span class="text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full font-bold text-[10px]">⚠️ ${mistakes} Titik Rawan</span>`;
+        }
+
+        const dateStr = new Date(l.created_at).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' });
+
+        el.innerHTML = `
+          <div>
+            <div class="font-bold text-slate-800">${detailText}</div>
+            <p class="text-[10px] text-slate-400 mt-0.5">${dateStr} • ${l.notes || '-'}</p>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <div>${badge}</div>
+            <button onclick="openEditModal('${l.id}')" title="Edit" class="text-slate-400 hover:text-teal-600 p-1.5 rounded-lg hover:bg-white transition">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+            </button>
+            <button onclick="deleteLog('${l.id}')" title="Hapus" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-white transition">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+          </div>
+        `;
+        container.appendChild(el);
+      });
+    }
+
+    async function loadAdminData() {
+      const { data: users } = await sb.from('profiles').select('*');
+      const { data: logs } = await sb.from('mudawamah_logs').select('*');
+
+      allUsersData = users || [];
+      allGlobalLogs = logs || [];
+
+      const activeUsersCount = allUsersData.filter(u => u.is_active).length;
+      document.getElementById('admin-total-users').innerText = `${activeUsersCount} Santri`;
+
+      const totalGlobalPages = allGlobalLogs.filter(l => l.pillar === 'Ziyadah' && l.portion_value)
+        .reduce((sum, item) => sum + parseFloat(item.portion_value), 0);
+      document.getElementById('admin-total-pages-global').innerText = `${Math.round(totalGlobalPages)} Hal`;
+
+      renderAdminPendingApproval();
+      renderAdminLeaderboard();
+      await loadAnnouncementSettings();
+      await loadPromoBanner();
+    }
+
+    function switchAdminSubTab(sub) {
+      ['approval', 'leaderboard', 'announcement', 'promo'].forEach(s => {
+        document.getElementById(`admin-sub-${s}`).classList.add('hidden');
+        document.getElementById(`btn-adm-sub-${s}`).className = "py-1.5 rounded-xl text-slate-500 hover:text-slate-800";
+      });
+
+      document.getElementById(`admin-sub-${sub}`).classList.remove('hidden');
+      document.getElementById(`btn-adm-sub-${sub}`).className = "py-1.5 rounded-xl bg-white text-teal-700 shadow-sm";
+    }
+
+    function renderAdminPendingApproval() {
+      const container = document.getElementById('admin-pending-list');
+      container.innerHTML = '';
+      const pendingUsers = allUsersData.filter(u => !u.is_active && u.role !== 'admin');
+
+      if (!pendingUsers.length) {
+        container.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-4">Tidak ada pendaftar yang menunggu approval.</p>';
+        return;
+      }
+
+      pendingUsers.forEach(u => {
+        const item = document.createElement('div');
+        item.className = 'bg-slate-50 p-3 rounded-2xl border border-slate-100 flex justify-between items-center text-xs';
+        item.innerHTML = `
+          <div>
+            <p class="font-bold text-slate-800">${u.full_name}</p>
+            <p class="text-[10px] text-slate-400 font-mono">${u.email}</p>
+          </div>
+          <button onclick="approveUser('${u.id}')" class="bg-teal-600 hover:bg-teal-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-xl shadow-sm transition">Setujui</button>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    async function approveUser(userId) {
+      const { error } = await sb.from('profiles').update({ is_active: true }).eq('id', userId);
+      if (error) return showToast("Gagal approve: " + error.message, true);
+      showToast("Akun santri berhasil diaktifkan!");
+      await loadAdminData();
+    }
+
+    function getAdminLeaderboardData() {
+      const activeUsers = allUsersData.filter(u => u.is_active);
+      return activeUsers.map(user => {
+        const logs = allGlobalLogs.filter(l => l.user_id === user.id);
+        const mutqinSet = new Set(logs.filter(l => l.juz && (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin')).map(l => l.juz));
+        const ziyadahCount = logs.filter(l => l.pillar === 'Ziyadah').length;
+        const ulang7Count = logs.filter(l => l.pillar === 'Ulang 7 Hari').length;
+        const totalZiyadahPages = logs.filter(l => l.pillar === 'Ziyadah' && l.portion_value).reduce((s, i) => s + parseFloat(i.portion_value), 0);
+        const totalMutqinPages = mutqinSet.size * 20;
+
+        return {
+          id: user.id,
+          name: user.full_name,
+          email: user.email,
+          mutqinJuz: mutqinSet.size,
+          ziyadahCount: ziyadahCount,
+          ulang7Count: ulang7Count,
+          ziyadahPages: totalZiyadahPages,
+          mutqinPages: totalMutqinPages,
+          totalPages: totalMutqinPages + totalZiyadahPages,
+          totalSetoran: logs.length
+        };
+      });
+    }
+
+    function renderAdminLeaderboard() {
+      const container = document.getElementById('admin-leaderboard-list');
+      container.innerHTML = '';
+      const type = document.getElementById('admin-rank-type').value;
+
+      const leaderboardData = getAdminLeaderboardData();
+
+      if (type === 'mutqin') {
+        leaderboardData.sort((a, b) => b.mutqinJuz - a.mutqinJuz || b.totalPages - a.totalPages);
+      } else if (type === 'ziyadah') {
+        leaderboardData.sort((a, b) => b.ziyadahCount - a.ziyadahCount || b.totalPages - a.totalPages);
+      } else if (type === 'ulang7') {
+        leaderboardData.sort((a, b) => b.ulang7Count - a.ulang7Count || b.totalPages - a.totalPages);
+      }
+
+      leaderboardData.forEach((santri, index) => {
+        const item = document.createElement('div');
+        item.className = 'bg-slate-50 p-3 rounded-2xl border border-slate-100 flex justify-between items-center text-xs';
+        let rankBadge = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : `#${index + 1}`));
+        let metricText = '';
+
+        if (type === 'mutqin') metricText = `<span class="text-teal-700 font-bold">${santri.mutqinJuz} Juz Mutqin</span>`;
+        else if (type === 'ziyadah') metricText = `<span class="text-teal-700 font-bold">${santri.ziyadahCount}x Ziyadah</span>`;
+        else metricText = `<span class="text-indigo-600 font-bold">${santri.ulang7Count}x Ulang 7 Hari</span>`;
+
+        item.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <span class="text-sm font-bold w-5 text-center">${rankBadge}</span>
+            <div>
+              <p class="font-bold text-slate-800">${santri.name}</p>
+              <p class="text-[10px] text-slate-400 font-mono">${santri.email}</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <div>${metricText}</div>
+            <p class="text-[9px] text-slate-400 font-medium">${santri.mutqinPages} Hal Mutqin</p>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    async function saveAnnouncementSettings() {
+      const isActive = document.getElementById('input-ann-active').checked;
+      const title = document.getElementById('input-ann-title').value.trim();
+      const content = document.getElementById('input-ann-content').value.trim();
+      const source = document.getElementById('input-ann-source').value.trim() || "Info Admin";
+
+      if (isActive && (!title || !content)) return showToast("Judul dan isi pengumuman wajib diisi!", true);
+
+      const { error } = await sb.from('announcement_settings').upsert({
+        id: 1, is_active: isActive, title: title || "-", content: content || "-", source: source, updated_at: new Date().toISOString()
+      });
+
+      if (error) return showToast("Gagal menyimpan: " + error.message, true);
+      showToast("Pengumuman berhasil disimpan!");
+      await loadAnnouncementSettings();
+    }
+
+    async function savePromoSettings() {
+      const isActive = document.getElementById('input-promo-active').checked;
+      const badge = document.getElementById('input-promo-badge').value.trim() || "PROMO SPESIAL";
+      const title = document.getElementById('input-promo-title').value.trim();
+      const desc = document.getElementById('input-promo-desc').value.trim();
+      const cta = document.getElementById('input-promo-cta').value.trim() || "Beli Sekarang";
+      const url = document.getElementById('input-promo-url').value.trim() || "#";
+
+      if (isActive && (!title || !desc)) return showToast("Judul dan deskripsi promosi wajib diisi!", true);
+
+      const { error } = await sb.from('promo_settings').upsert({
+        id: 1, is_active: isActive, badge: badge, title: title || "-", description: desc || "-", cta_text: cta, target_url: url, updated_at: new Date().toISOString()
+      });
+
+      if (error) return showToast("Gagal update promosi: " + error.message, true);
+      showToast("Pengaturan promosi berhasil disimpan!");
+      await loadPromoBanner();
+    }
+
+    function exportAdminMasterCSV() {
+      const data = getAdminLeaderboardData();
+      if (!data.length) return showToast("Belum ada data santri", true);
+
+      let csv = 'Peringkat,Nama Santri,Email,Juz Mutqin,Halaman Mutqin,Setoran Ziyadah (Frekuensi),Halaman Ziyadah,Setoran Ulang 7 Hari,Total Semua Setoran\n';
+      data.sort((a, b) => b.mutqinPages - a.mutqinPages);
+      data.forEach((s, idx) => {
+        csv += `"${idx+1}","${s.name}","${s.email}","${s.mutqinJuz} Juz","${s.mutqinPages} hal","${s.ziyadahCount} kali","${s.ziyadahPages} hal","${s.ulang7Count} kali","${s.totalSetoran} kali"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `Master_Rekap_Tahfizh_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      showToast("File Master CSV berhasil diunduh!");
+    }
+
+    function exportAdminMasterPDF() {
+      const data = getAdminLeaderboardData();
+      if (!data.length) return showToast("Belum ada data santri", true);
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(15);
+      doc.text("LAPORAN MASTER PRESTASI SANTRI TAHFIZH", 14, 18);
+      doc.setFontSize(9);
+      doc.text(`Dicetak Oleh : Super Admin (${currentUser.email})`, 14, 25);
+      doc.text(`Tanggal      : ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`, 14, 30);
+      doc.text(`Total Santri : ${data.length} Orang Terdaftar Aktif`, 14, 35);
+      doc.line(14, 38, 196, 38);
+
+      data.sort((a, b) => b.mutqinPages - a.mutqinPages);
+      let y = 46;
+      doc.setFontSize(8);
+      doc.text("No.  Nama Santri                     Juz Mutqin  Hal Mutqin  Ziyadah   Ulang 7H  Total", 14, y);
+      y += 2;
+      doc.line(14, y, 196, y);
+      y += 5;
+
+      data.forEach((s, i) => {
+        if (y > 275) { doc.addPage(); y = 20; }
+        const namePad = s.name.length > 23 ? s.name.substring(0, 21) + '..' : s.name.padEnd(24, ' ');
+        doc.text(`${String(i+1).padEnd(4, ' ')} ${namePad} ${String(s.mutqinJuz + ' Juz').padEnd(12, ' ')} ${String(s.mutqinPages + 'h').padEnd(12, ' ')} ${String(s.ziyadahCount + 'x').padEnd(10, ' ')} ${String(s.ulang7Count + 'x').padEnd(10, ' ')} ${s.totalSetoran}x`, 14, y);
+        y += 5.5;
+      });
+
+      doc.save(`Laporan_Master_Tahfizh_${new Date().toISOString().slice(0,10)}.pdf`);
+      showToast("Laporan Master PDF berhasil dicetak!");
+    }
+
+    function switchTab(tabId, btn) {
+      const isAdmin = currentUser && (['admin', 'super_admin', 'kepala_pontren'].includes((currentUser.role || '').toLowerCase()) || (currentUser.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase());
+
+      if (tabId === 'tab-admin' && !isAdmin) {
+        showToast("Akses khusus Admin!", true);
+        return;
+      }
+
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      const targetContent = document.getElementById(tabId);
+      if (targetContent) targetContent.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(b => {
+        b.classList.remove('text-teal-600', 'font-bold');
+        b.classList.add('text-slate-400', 'font-medium');
+      });
+
+      if (btn) {
+        btn.classList.remove('text-slate-400', 'font-medium');
+        btn.classList.add('text-teal-600', 'font-bold');
+      }
+
+      const btnAdminNav = document.getElementById('nav-btn-admin');
+      if (btnAdminNav) {
+        if (isAdmin) btnAdminNav.classList.remove('hidden');
+        else btnAdminNav.classList.add('hidden');
+      }
+
+      if (tabId === 'tab-stats') {
+        setTimeout(() => { renderPeriodicStats(); }, 80);
+      } else if (tabId === 'tab-mutqin') {
+        renderMutqinMilestones();
+      }
+    }
+
+    function exportCSV() {
+      if (!userLogs.length) return showToast("Belum ada data untuk diunduh", true);
+      let csv = 'Tanggal,Nama,Pilar,Surat,Ayat,Halaman/Juz,Beban/Pengulangan,Evaluasi\n';
+      userLogs.forEach(l => {
+        const surahCol = l.surah || "-";
+        const ayahCol = (l.ayah_start && l.ayah_end) ? `Ayat ${l.ayah_start}-${l.ayah_end}` : "-";
+        const pageCol = l.page_start ? `Hal ${l.page_start}` : (l.page || `Juz ${l.juz}`);
+        const loadCol = l.repetition_count ? `${l.repetition_count}x Ulang` : (l.portion || l.quality);
+        csv += `"${new Date(l.created_at).toLocaleDateString('id-ID')}","${currentUser.full_name}","${l.pillar}","${surahCol}","${ayahCol}","${pageCol}","${loadCol}","${l.notes}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `Rekap_Tahfizh_Mudawamah_${currentUser.full_name.replace(/\s+/g, '_')}.csv`;
+      a.click();
+    }
+
+    function exportPDF() {
+      if (!userLogs.length) return showToast("Belum ada data untuk dicetak", true);
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      const drawHeader = (pageNumber) => {
+        doc.setFontSize(15);
+        doc.setFont("helvetica", "bold");
+        doc.text("Laporan Progres Tahfizh Mudawamah", 14, 18);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Santri  : ${currentUser.full_name} (${currentUser.email})`, 14, 25);
+        doc.text(`Cetak   : ${new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`, 14, 30);
+        doc.text(`Halaman : ${pageNumber}`, 180, 30);
+        doc.setDrawColor(200, 200, 200);
+        doc.line(14, 34, 196, 34);
+      };
+
+      let pageCount = 1;
+      drawHeader(pageCount);
+
+      let y = 42;
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("Riwayat Seluruh Setoran:", 14, y);
+      y += 6;
+
+      doc.setFontSize(8.5);
+      doc.setFont("helvetica", "normal");
+
+      userLogs.forEach((l, i) => {
+        if (y > 275) {
+          doc.addPage();
+          pageCount++;
+          drawHeader(pageCount);
+          y = 42;
+          doc.setFontSize(8.5);
+          doc.setFont("helvetica", "normal");
+        }
+
+        let det = '';
+        if (l.pillar === 'Ziyadah') {
+          const sName = l.surah || "Al-Qur'an";
+          const aRange = (l.ayah_start && l.ayah_end) ? `Ayat ${l.ayah_start}-${l.ayah_end}` : `Hal ${l.page}`;
+          det = `${sName} • ${aRange} (${l.repetition_count || 1}x Ulang)`;
+        } else if (l.pillar === 'Ulang 7 Hari') {
+          const mCount = l.mistakes_count !== undefined ? `${l.mistakes_count} Salah/Lupa` : l.quality;
+          det = `Juz ${l.juz} • Kualitas: ${l.quality} (${mCount})`;
+        } else {
+          det = `Juz ${l.juz} • Titik Rawan: ${l.mistakes_count || 0}x`;
+        }
+
+        const dateStr = new Date(l.created_at).toLocaleDateString('id-ID');
+        const textRow = `${i + 1}. [${dateStr}] [${l.pillar}] ${det}`;
+        
+        doc.text(textRow, 14, y);
+        y += 5.5;
+      });
+
+      doc.save(`Rapor_Tahfizh_Mudawamah_${currentUser.full_name.replace(/\s+/g, '_')}.pdf`);
+      showToast("Rapor PDF multi-halaman berhasil dicetak!");
+    }
+  
+
   </script>
 </body>
 </html>
