@@ -201,15 +201,142 @@
             </select>
           </div>
 
-          <!-- KARTU STATUS MUTABA'AH MUDAWAMAH MANDIRI SANTRI -->
-          <div id="halaqah-mudawamah-quick-box" class="hidden bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-teal-500/10 border border-amber-300/70 p-3 rounded-2xl space-y-1.5">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-extrabold text-amber-900 uppercase tracking-wider flex items-center gap-1">
-                <span>🔥</span> Aktivitas Mandiri Santri (App Mudawamah)
-              </span>
-              <span id="quick-mudawamah-streak" class="text-[9px] font-black bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">Streak: 0 Hari</span>
+          <!-- PILIHAN TANGGAL AKTIVITAS HALAQAH (UNTUK INPUT SUSULAN / REVISI TANGGAL) -->
+          <div class="bg-teal-50/60 border border-teal-200/80 p-3 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <label for="halaqah-activity-date" class="text-[11px] font-extrabold text-teal-900 flex items-center gap-1">
+                <span>📅</span> <span>Tanggal Aktivitas Halaqah</span>
+              </label>
+              <p class="text-[9px] text-slate-500">Default hari ini. Ubah tanggal jika mencatat susulan aktivitas yang sudah lewat.</p>
             </div>
-            <p id="quick-mudawamah-last-info" class="text-[11px] text-slate-700 leading-tight font-medium">Memuat data tracker...</p>
+            <div class="flex items-center gap-1.5">
+              <input id="halaqah-activity-date" type="date" class="bg-white border border-teal-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-teal-600">
+              <button type="button" onclick="resetHalaqahDateToToday()" class="text-[10px] font-bold bg-white hover:bg-teal-100 text-teal-700 border border-teal-200 px-2.5 py-2 rounded-xl transition shrink-0">
+                Hari Ini
+              </button>
+            </div>
+          </div>
+
+          <!-- PANEL EVALUASI USTADZ: GRAFIK & AKTIVITAS TRACKER MUDAWAMAH SANTRI -->
+          <div id="halaqah-mudawamah-quick-box" class="hidden bg-gradient-to-br from-amber-50/80 via-white to-teal-50/60 border border-amber-300/80 p-3.5 rounded-2xl space-y-3 shadow-xs">
+            <div class="flex flex-wrap items-center justify-between gap-1.5 border-b border-amber-200/70 pb-2">
+              <div>
+                <span class="text-[11px] font-extrabold text-amber-950 uppercase tracking-wider flex items-center gap-1">
+                  <span>🔥</span> Evaluasi Aktivitas Mandiri Santri (Tracker Mudawamah)
+                </span>
+                <p id="quick-mudawamah-last-info" class="text-[10px] text-slate-600 font-medium mt-0.5">Memuat data tracker...</p>
+              </div>
+              <span id="quick-mudawamah-streak" class="text-[10px] font-black bg-amber-200 text-amber-950 px-2.5 py-0.5 rounded-full shrink-0">Streak: 0 Hari</span>
+            </div>
+
+            <!-- 3 Kartu Streak Mudawamah -->
+            <div class="grid grid-cols-3 gap-1.5 text-center">
+              <div class="bg-white p-2 rounded-xl border border-amber-200/70">
+                <p class="text-[9px] text-slate-400 font-bold uppercase">Streak Aktif</p>
+                <p id="sim-muda-streak-current" class="text-xs font-black text-amber-600">0 Hari</p>
+              </div>
+              <div class="bg-white p-2 rounded-xl border border-orange-200/70">
+                <p class="text-[9px] text-slate-400 font-bold uppercase">Streak Terlama</p>
+                <p id="sim-muda-streak-longest" class="text-xs font-black text-orange-600">0 Hari</p>
+              </div>
+              <div class="bg-white p-2 rounded-xl border border-teal-200/70">
+                <p class="text-[9px] text-slate-400 font-bold uppercase">Rata-rata</p>
+                <p id="sim-muda-streak-avg" class="text-xs font-black text-teal-700">0 Hari</p>
+              </div>
+            </div>
+
+            <!-- GRAFIK REKAP TRACKER MUDAWAMAH (HARI, PEKAN, BULAN, TAHUN, SEUMUR HIDUP) -->
+            <div class="bg-white p-3 rounded-2xl border border-slate-200/80 space-y-2.5">
+              <div class="flex flex-wrap items-center justify-between gap-1.5">
+                <div>
+                  <h4 class="text-[11px] font-extrabold text-slate-800">📊 Grafik Rekap Tracker Mudawamah</h4>
+                  <p id="sim-muda-period-desc" class="text-[9px] text-slate-400">Pekan Ini (7 Hari Terakhir)</p>
+                </div>
+                <div class="flex flex-wrap bg-slate-100 p-0.5 rounded-xl text-[9px] gap-0.5">
+                  <button type="button" onclick="setSimMudawamahPeriod('daily')" id="btn-sim-muda-period-daily" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-semibold transition">Hari</button>
+                  <button type="button" onclick="setSimMudawamahPeriod('weekly')" id="btn-sim-muda-period-weekly" class="px-2.5 py-1 rounded-lg bg-white text-teal-800 shadow-xs font-extrabold transition">Pekan</button>
+                  <button type="button" onclick="setSimMudawamahPeriod('monthly')" id="btn-sim-muda-period-monthly" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-semibold transition">Bulan</button>
+                  <button type="button" onclick="setSimMudawamahPeriod('yearly')" id="btn-sim-muda-period-yearly" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-semibold transition">Tahun</button>
+                  <button type="button" onclick="setSimMudawamahPeriod('lifetime')" id="btn-sim-muda-period-lifetime" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-semibold transition">Seumur Hidup</button>
+                </div>
+              </div>
+
+              <!-- Ringkasan 3 Pilar Periode Terpilih -->
+              <div class="grid grid-cols-3 gap-1.5 text-center">
+                <div class="bg-teal-50/70 p-2 rounded-xl border border-teal-100">
+                  <p class="text-[9px] text-teal-700 font-bold">Ziyadah Bersih</p>
+                  <p id="sim-muda-period-ziyadah" class="text-xs font-extrabold text-teal-800">0 Hal</p>
+                </div>
+                <div class="bg-indigo-50/70 p-2 rounded-xl border border-indigo-100">
+                  <p class="text-[9px] text-indigo-700 font-bold">Ulang 7 Hari</p>
+                  <p id="sim-muda-period-ulang" class="text-xs font-extrabold text-indigo-700">0 Kali</p>
+                </div>
+                <div class="bg-amber-50/70 p-2 rounded-xl border border-amber-100">
+                  <p class="text-[9px] text-amber-800 font-bold">Mutqin</p>
+                  <p id="sim-muda-period-mutqin" class="text-xs font-extrabold text-amber-700">0 Kali</p>
+                </div>
+              </div>
+
+              <!-- Kanvas Grafik Batang Chart.js -->
+              <div class="relative w-full h-48 pt-1">
+                <canvas id="simMudawamahPeriodChart"></canvas>
+              </div>
+              <p class="text-[9px] text-slate-400 text-center italic">*Grafik batang menampilkan akumulasi beban ikhtiar (halaman diulang & 20 hal/juz).</p>
+            </div>
+
+            <!-- SUB-TAB RINCIAN AKTIVITAS TAHFIZH UNTUK BAHAN EVALUASI USTADZ -->
+            <div class="space-y-2">
+              <div class="grid grid-cols-4 gap-1 bg-slate-200/70 p-1 rounded-2xl text-[10px]">
+                <button type="button" onclick="switchSimMudawamahEvalTab('riwayat7')" id="btn-sim-muda-sub-riwayat7" class="py-1.5 px-2 rounded-xl bg-white text-teal-800 shadow-xs font-extrabold transition">
+                  📅 7 Hari
+                </button>
+                <button type="button" onclick="switchSimMudawamahEvalTab('ziyadah')" id="btn-sim-muda-sub-ziyadah" class="py-1.5 px-2 rounded-xl text-slate-600 hover:text-slate-900 font-semibold transition">
+                  🌱 Ziyadah
+                </button>
+                <button type="button" onclick="switchSimMudawamahEvalTab('ulang7')" id="btn-sim-muda-sub-ulang7" class="py-1.5 px-2 rounded-xl text-slate-600 hover:text-slate-900 font-semibold transition">
+                  🔁 Ulang 7H
+                </button>
+                <button type="button" onclick="switchSimMudawamahEvalTab('mutqin')" id="btn-sim-muda-sub-mutqin" class="py-1.5 px-2 rounded-xl text-slate-600 hover:text-slate-900 font-semibold transition">
+                  👑 Mutqin
+                </button>
+              </div>
+
+              <!-- Panel 1: Riwayat 7 Hari -->
+              <div id="sim-muda-panel-riwayat7" class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-extrabold text-slate-700">Riwayat Aktivitas 7 Hari Terakhir</span>
+                  <span id="sim-muda-count-riwayat7" class="text-[9px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full">0 Aktivitas</span>
+                </div>
+                <div id="sim-muda-list-riwayat7" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
+              </div>
+
+              <!-- Panel 2: Ziyadah & Catatannya -->
+              <div id="sim-muda-panel-ziyadah" class="hidden space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-extrabold text-teal-800">Setoran Ziyadah & Catatannya</span>
+                  <span id="sim-muda-count-ziyadah" class="text-[9px] font-bold bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full border border-teal-200">0 Setoran</span>
+                </div>
+                <div id="sim-muda-list-ziyadah" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
+              </div>
+
+              <!-- Panel 3: Ulang 7 Hari Warna & Catatannya -->
+              <div id="sim-muda-panel-ulang7" class="hidden space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-extrabold text-indigo-800">Ulang 7 Hari (Indikator Warna & Catatan)</span>
+                  <span id="sim-muda-count-ulang7" class="text-[9px] font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full border border-indigo-200">0 Kali</span>
+                </div>
+                <div id="sim-muda-list-ulang7" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
+              </div>
+
+              <!-- Panel 4: Mutqin & Catatannya -->
+              <div id="sim-muda-panel-mutqin" class="hidden space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-extrabold text-amber-800">Ujian Mutqin & Catatan Titik Rawan</span>
+                  <span id="sim-muda-count-mutqin" class="text-[9px] font-bold bg-amber-50 text-amber-800 px-2 py-0.5 rounded-full border border-amber-200">0 Setoran</span>
+                </div>
+                <div id="sim-muda-list-mutqin" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
+              </div>
+            </div>
           </div>
 
           <!-- KARTU RECORD HISTORY 10 PERTEMUAN TERAKHIR (SCROLLABLE) -->
@@ -912,6 +1039,75 @@
 
     </main>
 
+    <!-- ================= MODAL EDIT CATATAN HALAQAH QUR'AN ================= -->
+    <div id="modal-edit-halaqah-log" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden">
+        <div class="bg-gradient-to-r from-teal-800 to-teal-900 text-white p-4 flex justify-between items-center">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center border border-white/20 text-base">
+              ✏️
+            </div>
+            <div>
+              <h3 class="font-extrabold text-sm">Edit Catatan Halaqah Qur'an</h3>
+              <p class="text-[10px] text-teal-200/80">Perbarui tanggal aktivitas, materi/bacaan, atau evaluasi</p>
+            </div>
+          </div>
+          <button type="button" onclick="closeEditHalaqahModal()" class="w-7 h-7 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-xs font-bold transition">
+            ✕
+          </button>
+        </div>
+
+        <div class="p-5 space-y-3.5 max-h-[82vh] overflow-y-auto">
+          <input type="hidden" id="edit-hlog-id">
+          <input type="hidden" id="edit-hlog-student-id">
+
+          <div>
+            <label class="text-[11px] text-slate-600 block mb-1 font-bold">📅 Tanggal Aktivitas Halaqah</label>
+            <input id="edit-hlog-date" type="date" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 font-bold focus:outline-none focus:border-teal-600">
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div>
+              <label class="text-[11px] text-slate-600 block mb-1 font-semibold">Jenis / Pilar</label>
+              <select id="edit-hlog-pillar" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-bold focus:outline-none focus:border-teal-600">
+                <option value="Tahsin">Tahsin (Iqro / Lancar)</option>
+                <option value="Ziyadah">Ziyadah (Tahfizh)</option>
+                <option value="Murajaah">Muraja'ah</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-600 block mb-1 font-semibold">Nomor Juz (Opsional)</label>
+              <input id="edit-hlog-juz" type="number" min="1" max="30" placeholder="1 - 30" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 font-bold focus:outline-none focus:border-teal-600">
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[11px] text-slate-600 block mb-1 font-semibold">Label Capaian / Kategori</label>
+            <input id="edit-hlog-quality" type="text" placeholder="Contoh: Iqro 3 (Terbata-bata) / Setoran Mahir (Juz 30)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 font-bold focus:outline-none focus:border-teal-600">
+          </div>
+
+          <div>
+            <label class="text-[11px] text-slate-600 block mb-1 font-semibold">Materi / Buku Iqro / Surat & Ayat</label>
+            <input id="edit-hlog-surah" type="text" placeholder="Contoh: Iqro 3 — Halaman 14 atau Juz 30: 78. An-Naba'" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 font-bold focus:outline-none focus:border-teal-600">
+          </div>
+
+          <div>
+            <label class="text-[11px] text-slate-600 block mb-1 font-semibold">Catatan / Evaluasi Pengampu</label>
+            <textarea id="edit-hlog-notes" rows="3" placeholder="Catatan evaluasi kelancaran, tajwid, atau makhraj..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 font-medium focus:outline-none focus:border-teal-600"></textarea>
+          </div>
+
+          <div class="flex gap-2 pt-1">
+            <button type="button" id="btn-save-edit-hlog" onclick="saveEditedHalaqahLog()" class="flex-1 bg-teal-700 hover:bg-teal-800 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition">
+              Simpan Perubahan
+            </button>
+            <button type="button" onclick="closeEditHalaqahModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
+              Batal
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ================= MODAL GANTI PASSWORD LOGIN ================= -->
     <div id="modal-change-password" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
       <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden">
@@ -1002,7 +1198,7 @@
           </div>
 
           <!-- Tab 2: Mudawamah Mandiri Santri -->
-          <div id="act-tab-mudawamah" class="act-modal-tab hidden space-y-2.5">
+          <div id="act-tab-mudawamah" class="act-modal-tab hidden space-y-3">
             <div class="bg-amber-500/10 border border-amber-500/30 p-3 rounded-2xl space-y-2">
               <div class="flex justify-between items-center">
                 <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-900 flex items-center gap-1">
@@ -1025,8 +1221,26 @@
                 </div>
               </div>
             </div>
+
+            <!-- Grafik Rekap Tracker Mudawamah di Buku Rapor -->
+            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/80 space-y-2">
+              <div class="flex flex-wrap items-center justify-between gap-1">
+                <span class="text-[10px] font-extrabold text-slate-800">📊 Grafik Rekap Mudawamah</span>
+                <div class="flex flex-wrap bg-slate-200/70 p-0.5 rounded-lg text-[9px] gap-0.5">
+                  <button type="button" onclick="setModalMudawamahPeriod('daily')" id="btn-modal-muda-period-daily" class="px-2 py-0.5 rounded-md text-slate-600 font-semibold">Hari</button>
+                  <button type="button" onclick="setModalMudawamahPeriod('weekly')" id="btn-modal-muda-period-weekly" class="px-2 py-0.5 rounded-md bg-white text-teal-800 shadow-2xs font-extrabold">Pekan</button>
+                  <button type="button" onclick="setModalMudawamahPeriod('monthly')" id="btn-modal-muda-period-monthly" class="px-2 py-0.5 rounded-md text-slate-600 font-semibold">Bulan</button>
+                  <button type="button" onclick="setModalMudawamahPeriod('yearly')" id="btn-modal-muda-period-yearly" class="px-2 py-0.5 rounded-md text-slate-600 font-semibold">Tahun</button>
+                  <button type="button" onclick="setModalMudawamahPeriod('lifetime')" id="btn-modal-muda-period-lifetime" class="px-2 py-0.5 rounded-md text-slate-600 font-semibold">Seumur Hidup</button>
+                </div>
+              </div>
+              <div class="relative w-full h-44">
+                <canvas id="modalMudawamahPeriodChart"></canvas>
+              </div>
+            </div>
+
             <div class="flex justify-between items-center mb-1">
-              <span class="text-[11px] font-bold text-slate-700">Riwayat Latihan Mandiri Santri:</span>
+              <span class="text-[11px] font-bold text-slate-700">Riwayat & Catatan Evaluasi Mudawamah Santri:</span>
             </div>
             <div id="modal-act-mudawamah-list" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
           </div>
@@ -2177,12 +2391,14 @@
         studentsList.map(s => `<option value="${s.id}">${s.full_name} [${s.category}] (${s.status.toUpperCase()})</option>`).join('');
       if (selKas) selKas.innerHTML = allOptionsHtml;
 
+      resetHalaqahDateToToday();
       renderHalaqahCategoryTabs();
       onMahirJuzInput();
       renderStudentsTable();
       renderAttendanceChecklist();
       await loadUstadzList();
       await loadFinanceRecords();
+      await loadAttendanceRecap();
     }
 
     function switchInternalTab(tabId) {
@@ -2582,6 +2798,7 @@
         .order('created_at', { ascending: false });
 
       const items = logs || [];
+      window.currentStudentHalaqahLogs = items;
       countBadge.innerText = `${items.length} Pertemuan`;
 
       renderPaginatedList(
@@ -2589,7 +2806,7 @@
         'halaqah-history-scroll-list',
         items,
         (l) => {
-          const dateStr = new Date(l.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+          const dateStr = new Date(l.created_at).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
           const badgeLabel = l.quality || l.pillar || 'Halaqah';
           const detailMateri = l.surah
             ? `<b>${l.surah}</b>${l.ayah_start ? ` (Ayat ${l.ayah_start}-${l.ayah_end})` : ''}`
@@ -2602,15 +2819,23 @@
               : 'bg-amber-50 text-amber-800 border-amber-200');
 
           return `
-            <div class="bg-white p-2.5 rounded-xl border border-slate-200/80 text-xs shadow-xs">
+            <div class="bg-white p-2.5 rounded-xl border border-slate-200/80 text-xs shadow-xs space-y-1.5">
               <div class="flex items-center justify-between gap-1">
                 <span class="text-[9px] font-black px-2 py-0.5 rounded-md border uppercase ${badgeColor}">
                   ${badgeLabel}
                 </span>
-                <span class="text-[10px] text-slate-400 font-mono shrink-0">${dateStr}</span>
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <span class="text-[10px] text-slate-500 font-mono font-semibold">📅 ${dateStr}</span>
+                  <button type="button" onclick="openEditHalaqahModal('${l.id}')" class="px-1.5 py-0.5 text-[9px] font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-md transition" title="Edit Catatan & Tanggal">
+                    ✏️ Edit
+                  </button>
+                  <button type="button" onclick="deleteHalaqahLog('${l.id}', '${studentId}')" class="px-1.5 py-0.5 text-[9px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-md transition" title="Hapus Catatan">
+                    🗑️
+                  </button>
+                </div>
               </div>
-              <p class="text-slate-800 text-[11px] mt-1">${detailMateri}</p>
-              ${l.notes ? `<p class="text-[10px] text-teal-700 mt-0.5 font-medium italic">"${l.notes}"</p>` : ''}
+              <p class="text-slate-800 text-[11px]">${detailMateri}</p>
+              ${l.notes ? `<p class="text-[10px] text-teal-700 font-medium italic">"${l.notes}"</p>` : ''}
             </div>
           `;
         },
@@ -2619,32 +2844,24 @@
 
       try {
         const studentObj = studentsList.find(s => s.id === studentId);
-        let mudaQuery = sb.from('mudawamah_logs').select('*');
-        if (studentObj && studentObj.student_email) {
-          const dispStIdent = formatDisplayIdentifier(studentObj.student_email);
-          const normStIdent = normalizeAuthIdentifier(studentObj.student_email);
-          mudaQuery = mudaQuery.or(`student_id.eq.${studentId},notes.ilike.%${normStIdent}%,notes.ilike.%${dispStIdent}%`);
-        } else {
-          mudaQuery = mudaQuery.eq('student_id', studentId);
-        }
-        const { data: mudaLogs } = await mudaQuery.order('created_at', { ascending: false });
-
-        const mLogs = mudaLogs || [];
+        const mLogs = await fetchMudawamahLogsForStudent(studentObj);
         const streakCount = calculateStreaks(mLogs).current;
         document.getElementById('quick-mudawamah-streak').innerText = `Streak: ${streakCount} Hari`;
 
         if (mLogs.length > 0) {
           const lastM = mLogs[0];
-          const lastMDate = new Date(lastM.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+          const lastMDate = new Date(lastM.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
           let desc = `Latihan terakhir (${lastMDate}): [${lastM.pillar}] ${lastM.surah || 'Juz ' + lastM.juz}`;
           if (lastM.repetition_count) desc += ` (${lastM.repetition_count}x Ulang)`;
-          if (lastM.quality) desc += ` • Evaluasi: ${lastM.quality}`;
           document.getElementById('quick-mudawamah-last-info').innerText = desc;
         } else {
-          document.getElementById('quick-mudawamah-last-info').innerText = "Santri belum mencatat latihan di Tracker Mudawamah pekan ini.";
+          document.getElementById('quick-mudawamah-last-info').innerText = "Santri belum memiliki catatan latihan di Tracker Mudawamah.";
         }
+
+        renderSimMudawamahEvaluationPanels(mLogs);
       } catch (err) {
         document.getElementById('quick-mudawamah-last-info').innerText = "Belum ada catatan aktivitas mudawamah.";
+        renderSimMudawamahEvaluationPanels([]);
       }
 
       // Auto-sinkronkan progres terakhir santri sesuai kategori aktif
@@ -2687,6 +2904,493 @@
       }
     }
 
+    async function fetchMudawamahLogsForStudent(studentObj) {
+      if (!studentObj) return [];
+      const studentId = studentObj.id;
+      let profileUserIds = [];
+
+      try {
+        if (studentObj.student_email) {
+          const dispStIdent = formatDisplayIdentifier(studentObj.student_email);
+          const normStIdent = normalizeAuthIdentifier(studentObj.student_email);
+          const { data: profs } = await sb.from('profiles')
+            .select('id')
+            .or(`email.eq.${normStIdent},email.eq.${dispStIdent}`);
+          if (profs && profs.length > 0) {
+            profileUserIds = profs.map(p => p.id).filter(Boolean);
+          }
+        }
+      } catch (e) {}
+
+      try {
+        const orClauses = [`student_id.eq.${studentId}`];
+        profileUserIds.forEach(uid => orClauses.push(`user_id.eq.${uid}`));
+        if (studentObj.student_email) {
+          const dispStIdent = formatDisplayIdentifier(studentObj.student_email);
+          const normStIdent = normalizeAuthIdentifier(studentObj.student_email);
+          orClauses.push(`notes.ilike.%${normStIdent}%`);
+          orClauses.push(`notes.ilike.%${dispStIdent}%`);
+        }
+        const { data: mLogs, error } = await sb.from('mudawamah_logs')
+          .select('*')
+          .or(orClauses.join(','))
+          .order('created_at', { ascending: false });
+
+        if (!error && mLogs) return mLogs;
+      } catch (e) {}
+
+      // Fallback query if student_id column doesn't exist yet on mudawamah_logs
+      try {
+        if (profileUserIds.length > 0) {
+          const { data: fallbackLogs } = await sb.from('mudawamah_logs')
+            .select('*')
+            .in('user_id', profileUserIds)
+            .order('created_at', { ascending: false });
+          return fallbackLogs || [];
+        }
+      } catch (e) {}
+
+      return [];
+    }
+
+    let simMudawamahChartInstance = null;
+    let currentSimMudawamahLogsCache = [];
+    let activeSimMudaPeriod = 'weekly';
+    let activeSimMudaSubTab = 'riwayat7';
+
+    function setSimMudawamahPeriod(period) {
+      activeSimMudaPeriod = period;
+      ['daily', 'weekly', 'monthly', 'yearly', 'lifetime'].forEach(p => {
+        const btn = document.getElementById(`btn-sim-muda-period-${p}`);
+        if (btn) {
+          btn.className = (p === period)
+            ? "px-2.5 py-1 rounded-lg bg-white text-teal-800 shadow-xs font-extrabold transition"
+            : "px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-semibold transition";
+        }
+      });
+      renderSimMudawamahChartAndStats();
+    }
+
+    function switchSimMudawamahEvalTab(tabKey) {
+      activeSimMudaSubTab = tabKey;
+      ['riwayat7', 'ziyadah', 'ulang7', 'mutqin'].forEach(t => {
+        const btn = document.getElementById(`btn-sim-muda-sub-${t}`);
+        const panel = document.getElementById(`sim-muda-panel-${t}`);
+        if (btn) {
+          btn.className = (t === tabKey)
+            ? "py-1.5 px-2 rounded-xl bg-white text-teal-800 shadow-xs font-extrabold transition"
+            : "py-1.5 px-2 rounded-xl text-slate-600 hover:text-slate-900 font-semibold transition";
+        }
+        if (panel) {
+          if (t === tabKey) panel.classList.remove('hidden');
+          else panel.classList.add('hidden');
+        }
+      });
+    }
+
+    function renderSimMudawamahChartAndStats() {
+      const logs = currentSimMudawamahLogsCache || [];
+      const now = new Date();
+      let filteredLogs = [];
+      let labels = [];
+      let ziyadahEffortPages = [];
+      let ulangPages = [];
+      let mutqinPages = [];
+      const descEl = document.getElementById('sim-muda-period-desc');
+
+      if (activeSimMudaPeriod === 'daily') {
+        if (descEl) descEl.innerText = "Harian (Per Jam Hari Ini)";
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+        filteredLogs = logs.filter(l => new Date(l.created_at) >= todayStart);
+
+        labels = ['00-06', '06-09', '09-12', '12-15', '15-18', '18-21', '21-24'];
+        ziyadahEffortPages = new Array(7).fill(0);
+        ulangPages = new Array(7).fill(0);
+        mutqinPages = new Array(7).fill(0);
+
+        filteredLogs.forEach(l => {
+          const h = new Date(l.created_at).getHours();
+          let idx = 0;
+          if (h >= 6 && h < 9) idx = 1;
+          else if (h >= 9 && h < 12) idx = 2;
+          else if (h >= 12 && h < 15) idx = 3;
+          else if (h >= 15 && h < 18) idx = 4;
+          else if (h >= 18 && h < 21) idx = 5;
+          else if (h >= 21) idx = 6;
+
+          if (l.pillar === 'Ziyadah') {
+            ziyadahEffortPages[idx] += (parseFloat(l.portion_value || 1.0) * parseInt(l.repetition_count || 1));
+          } else if (l.pillar === 'Ulang 7 Hari') {
+            ulangPages[idx] += 20;
+          } else if (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin') {
+            mutqinPages[idx] += 20;
+          }
+        });
+      } else if (activeSimMudaPeriod === 'weekly') {
+        if (descEl) descEl.innerText = "Pekan Ini (7 Hari Terakhir)";
+        const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+        const dayMap = {};
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          labels.push(`${dayNames[d.getDay()]} (${d.getDate()})`);
+          dayMap[key] = labels.length - 1;
+        }
+
+        const startSevenDays = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0);
+        filteredLogs = logs.filter(l => new Date(l.created_at) >= startSevenDays);
+
+        ziyadahEffortPages = new Array(7).fill(0);
+        ulangPages = new Array(7).fill(0);
+        mutqinPages = new Array(7).fill(0);
+
+        filteredLogs.forEach(l => {
+          const ld = new Date(l.created_at);
+          const key = `${ld.getFullYear()}-${String(ld.getMonth() + 1).padStart(2, '0')}-${String(ld.getDate()).padStart(2, '0')}`;
+          const idx = dayMap[key];
+          if (idx !== undefined) {
+            if (l.pillar === 'Ziyadah') {
+              ziyadahEffortPages[idx] += (parseFloat(l.portion_value || 1.0) * parseInt(l.repetition_count || 1));
+            } else if (l.pillar === 'Ulang 7 Hari') {
+              ulangPages[idx] += 20;
+            } else if (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin') {
+              mutqinPages[idx] += 20;
+            }
+          }
+        });
+      } else if (activeSimMudaPeriod === 'monthly') {
+        if (descEl) descEl.innerText = `Bulan ${now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`;
+        filteredLogs = logs.filter(l => {
+          const d = new Date(l.created_at);
+          return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        });
+
+        labels = ['Pekan 1 (1-7)', 'Pekan 2 (8-14)', 'Pekan 3 (15-21)', 'Pekan 4 (22-dst)'];
+        ziyadahEffortPages = [0, 0, 0, 0];
+        ulangPages = [0, 0, 0, 0];
+        mutqinPages = [0, 0, 0, 0];
+
+        filteredLogs.forEach(l => {
+          const date = new Date(l.created_at).getDate();
+          const wIdx = Math.min(3, Math.floor((date - 1) / 7));
+          if (l.pillar === 'Ziyadah') {
+            ziyadahEffortPages[wIdx] += (parseFloat(l.portion_value || 1.0) * parseInt(l.repetition_count || 1));
+          } else if (l.pillar === 'Ulang 7 Hari') {
+            ulangPages[wIdx] += 20;
+          } else if (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin') {
+            mutqinPages[wIdx] += 20;
+          }
+        });
+      } else if (activeSimMudaPeriod === 'yearly') {
+        if (descEl) descEl.innerText = `Tahun ${now.getFullYear()}`;
+        filteredLogs = logs.filter(l => new Date(l.created_at).getFullYear() === now.getFullYear());
+        labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        ziyadahEffortPages = new Array(12).fill(0);
+        ulangPages = new Array(12).fill(0);
+        mutqinPages = new Array(12).fill(0);
+
+        filteredLogs.forEach(l => {
+          const m = new Date(l.created_at).getMonth();
+          if (l.pillar === 'Ziyadah') {
+            ziyadahEffortPages[m] += (parseFloat(l.portion_value || 1.0) * parseInt(l.repetition_count || 1));
+          } else if (l.pillar === 'Ulang 7 Hari') {
+            ulangPages[m] += 20;
+          } else if (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin') {
+            mutqinPages[m] += 20;
+          }
+        });
+      } else {
+        if (descEl) descEl.innerText = "Seumur Hidup (Seluruh Masa Studi)";
+        filteredLogs = [...logs];
+        const yearsSet = new Set(logs.map(l => new Date(l.created_at).getFullYear()));
+        if (yearsSet.size === 0) yearsSet.add(now.getFullYear());
+        const sortedYears = Array.from(yearsSet).sort((a, b) => a - b);
+        labels = sortedYears.map(y => `Thn ${y}`);
+
+        ziyadahEffortPages = new Array(sortedYears.length).fill(0);
+        ulangPages = new Array(sortedYears.length).fill(0);
+        mutqinPages = new Array(sortedYears.length).fill(0);
+
+        filteredLogs.forEach(l => {
+          const yIdx = sortedYears.indexOf(new Date(l.created_at).getFullYear());
+          if (yIdx !== -1) {
+            if (l.pillar === 'Ziyadah') {
+              ziyadahEffortPages[yIdx] += (parseFloat(l.portion_value || 1.0) * parseInt(l.repetition_count || 1));
+            } else if (l.pillar === 'Ulang 7 Hari') {
+              ulangPages[yIdx] += 20;
+            } else if (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin') {
+              mutqinPages[yIdx] += 20;
+            }
+          }
+        });
+      }
+
+      const cleanZiyadahHalaman = calculateCleanZiyadahPages(filteredLogs);
+      const frekuensiUlangCount = filteredLogs.filter(l => l.pillar === 'Ulang 7 Hari').length;
+      const frekuensiMutqinCount = filteredLogs.filter(l => l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin').length;
+
+      const elZ = document.getElementById('sim-muda-period-ziyadah');
+      const elU = document.getElementById('sim-muda-period-ulang');
+      const elM = document.getElementById('sim-muda-period-mutqin');
+      if (elZ) elZ.innerText = `${cleanZiyadahHalaman} Hal`;
+      if (elU) elU.innerText = `${frekuensiUlangCount} Kali`;
+      if (elM) elM.innerText = `${frekuensiMutqinCount} Kali`;
+
+      const canvasEl = document.getElementById('simMudawamahPeriodChart');
+      if (!canvasEl || typeof Chart === 'undefined') return;
+      const ctx = canvasEl.getContext('2d');
+      if (simMudawamahChartInstance) simMudawamahChartInstance.destroy();
+
+      simMudawamahChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Ziyadah (Hal x Diulang)',
+              data: ziyadahEffortPages.map(v => parseFloat(v.toFixed(1))),
+              backgroundColor: '#0d9488',
+              borderRadius: 5,
+              barPercentage: 0.85,
+              categoryPercentage: 0.75
+            },
+            {
+              label: 'Ulang 7 Hari (20 Hal/Setor)',
+              data: ulangPages,
+              backgroundColor: '#6366f1',
+              borderRadius: 5,
+              barPercentage: 0.85,
+              categoryPercentage: 0.75
+            },
+            {
+              label: 'Mutqin (20 Hal/Setor)',
+              data: mutqinPages,
+              backgroundColor: '#f59e0b',
+              borderRadius: 5,
+              barPercentage: 0.85,
+              categoryPercentage: 0.75
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: { boxWidth: 8, font: { size: 9, weight: 'bold' }, color: '#475569' }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: '#f1f5f9' },
+              ticks: { color: '#94a3b8', font: { size: 9 }, stepSize: 5 }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#64748b', font: { size: 8 } }
+            }
+          }
+        }
+      });
+    }
+
+    function renderSimMudawamahEvaluationPanels(mLogs) {
+      currentSimMudawamahLogsCache = mLogs || [];
+      const streaks = calculateMudaStreaks(mLogs);
+      const elStreakCur = document.getElementById('sim-muda-streak-current');
+      const elStreakMax = document.getElementById('sim-muda-streak-longest');
+      const elStreakAvg = document.getElementById('sim-muda-streak-avg');
+      if (elStreakCur) elStreakCur.innerText = `${streaks.current} Hari`;
+      if (elStreakMax) elStreakMax.innerText = `${streaks.longest} Hari`;
+      if (elStreakAvg) elStreakAvg.innerText = `± ${streaks.average} Hari`;
+
+      // 1. Riwayat 7 Hari Terakhir
+      const now = new Date();
+      const sevenDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0);
+      const logs7Days = mLogs.filter(l => new Date(l.created_at) >= sevenDaysAgo);
+      const c7 = document.getElementById('sim-muda-count-riwayat7');
+      if (c7) c7.innerText = `${logs7Days.length} Aktivitas`;
+
+      renderPaginatedList(
+        'sim_muda_riwayat7',
+        'sim-muda-list-riwayat7',
+        logs7Days,
+        (l) => {
+          const dateStr = new Date(l.created_at).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+          let detailTitle = '';
+          let badgeHtml = '';
+          if (l.pillar === 'Ziyadah') {
+            detailTitle = `${l.surah || "Al-Qur'an"} • ${l.ayah_start && l.ayah_end ? `Ayat ${l.ayah_start}-${l.ayah_end}` : `Hal. ${l.page || '-'}`}`;
+            badgeHtml = `<span class="text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full font-bold text-[9px]">Ziyadah • 🔁 ${l.repetition_count || 1}x</span>`;
+          } else if (l.pillar === 'Ulang 7 Hari') {
+            const mCount = l.mistakes_count !== undefined ? `${l.mistakes_count} Salah` : (l.quality || '-');
+            detailTitle = `Juz ${l.juz} • Ulang 7 Hari`;
+            badgeHtml = l.quality === 'Hijau'
+              ? `<span class="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-bold text-[9px]">🟢 Lancar (${mCount})</span>`
+              : (l.quality === 'Kuning'
+                ? `<span class="text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full font-bold text-[9px]">🟡 Ragu (${mCount})</span>`
+                : `<span class="text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full font-bold text-[9px]">🔴 Rapuh (${mCount})</span>`);
+          } else {
+            const mistakes = l.mistakes_count || 0;
+            detailTitle = `Juz ${l.juz} • Ujian Mutqin`;
+            badgeHtml = mistakes === 0
+              ? `<span class="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-bold text-[9px]">🟢 Mumtaz (0 Rawan)</span>`
+              : `<span class="text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full font-bold text-[9px]">⚠️ ${mistakes} Titik Rawan</span>`;
+          }
+          return `
+            <div class="bg-white p-2.5 rounded-xl border border-slate-200/80 text-xs space-y-1 shadow-2xs">
+              <div class="flex items-center justify-between gap-1">
+                ${badgeHtml}
+                <span class="text-[10px] text-slate-400 font-mono">${dateStr}</span>
+              </div>
+              <p class="font-bold text-slate-800 text-[11px]">${detailTitle}</p>
+              ${l.notes ? `<p class="text-[10px] text-slate-600 italic">"${l.notes}"</p>` : ''}
+            </div>
+          `;
+        },
+        '<p class="text-xs text-slate-400 italic text-center py-3">Belum ada aktivitas mandiri dalam 7 hari terakhir.</p>'
+      );
+
+      // 2. Ziyadah & Catatannya
+      const ziyadahLogs = mLogs.filter(l => l.pillar === 'Ziyadah');
+      const cZ = document.getElementById('sim-muda-count-ziyadah');
+      if (cZ) cZ.innerText = `${ziyadahLogs.length} Setoran`;
+
+      renderPaginatedList(
+        'sim_muda_ziyadah',
+        'sim-muda-list-ziyadah',
+        ziyadahLogs,
+        (l) => {
+          const dateStr = new Date(l.created_at).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+          const ayahInfo = (l.ayah_start && l.ayah_end) ? `Ayat ${l.ayah_start} - ${l.ayah_end}` : (l.page ? `Halaman ${l.page}` : '');
+          const linesInfo = l.lines_total ? `${l.lines_total} Baris (${l.portion_value || 0} Hal)` : (l.portion || '-');
+          return `
+            <div class="bg-white p-2.5 rounded-xl border border-teal-200/80 text-xs space-y-1 shadow-2xs">
+              <div class="flex items-center justify-between gap-1">
+                <span class="text-[9px] font-black bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded-md">
+                  📖 ${l.surah || "Al-Qur'an"} ${ayahInfo ? `(${ayahInfo})` : ''}
+                </span>
+                <span class="text-[10px] text-slate-400 font-mono">${dateStr}</span>
+              </div>
+              <div class="flex items-center justify-between text-[10px] text-slate-600 font-semibold">
+                <span>Beban: <b>${linesInfo}</b></span>
+                <span class="text-teal-700 font-bold">🔁 Diulang ${l.repetition_count || 1}x</span>
+              </div>
+              ${l.notes ? `<p class="text-[10px] text-teal-800 bg-teal-50/60 px-2 py-1 rounded-lg italic">"${l.notes}"</p>` : ''}
+            </div>
+          `;
+        },
+        '<p class="text-xs text-slate-400 italic text-center py-3">Belum ada catatan Ziyadah mandiri santri.</p>'
+      );
+
+      // 3. Ulang 7 Hari (Warna Kualitas & Catatannya)
+      const ulangLogs = mLogs.filter(l => l.pillar === 'Ulang 7 Hari');
+      const cU = document.getElementById('sim-muda-count-ulang7');
+      if (cU) cU.innerText = `${ulangLogs.length} Kali`;
+
+      renderPaginatedList(
+        'sim_muda_ulang7',
+        'sim-muda-list-ulang7',
+        ulangLogs,
+        (l) => {
+          const dateStr = new Date(l.created_at).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+          const mCount = l.mistakes_count !== undefined ? l.mistakes_count : (Array.isArray(l.mistake_details) ? l.mistake_details.length : 0);
+          let colorCardClass = 'border-emerald-200 bg-emerald-50/30';
+          let colorBadge = `<span class="text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-full">🟢 Hijau • Lancar (${mCount} Salah)</span>`;
+          if (l.quality === 'Kuning') {
+            colorCardClass = 'border-amber-200 bg-amber-50/40';
+            colorBadge = `<span class="text-[9px] font-black bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full">🟡 Kuning • Ragu (${mCount} Salah)</span>`;
+          } else if (l.quality === 'Merah') {
+            colorCardClass = 'border-rose-200 bg-rose-50/40';
+            colorBadge = `<span class="text-[9px] font-black bg-rose-100 text-rose-800 border border-rose-300 px-2 py-0.5 rounded-full">🔴 Merah • Rapuh (${mCount} Salah)</span>`;
+          }
+
+          let mistakeDetailText = '';
+          if (Array.isArray(l.mistake_details) && l.mistake_details.length > 0) {
+            const listStr = l.mistake_details.map(m => {
+              const sObj = QURAN_SURAHS.find(s => s.no === m.surahNo);
+              const sName = sObj ? sObj.name : `Surat ${m.surahNo}`;
+              return `${sName}:${m.ayah}`;
+            }).join(', ');
+            mistakeDetailText = `<p class="text-[10px] text-rose-700 font-semibold">Titik Salah/Lupa: ${listStr}</p>`;
+          }
+
+          return `
+            <div class="p-2.5 rounded-xl border ${colorCardClass} text-xs space-y-1 shadow-2xs">
+              <div class="flex flex-wrap items-center justify-between gap-1">
+                <div class="flex items-center gap-1.5">
+                  <span class="font-extrabold text-slate-800">Juz ${l.juz}</span>
+                  ${colorBadge}
+                </div>
+                <span class="text-[10px] text-slate-400 font-mono">${dateStr}</span>
+              </div>
+              ${mistakeDetailText}
+              ${l.notes ? `<p class="text-[10px] text-slate-700 italic">"${l.notes}"</p>` : ''}
+            </div>
+          `;
+        },
+        '<p class="text-xs text-slate-400 italic text-center py-3">Belum ada catatan Ulang 7 Hari santri.</p>'
+      );
+
+      // 4. Mutqin & Catatannya (Titik Rawan / Pemutihan)
+      const mutqinLogs = mLogs.filter(l => l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin');
+      const cM = document.getElementById('sim-muda-count-mutqin');
+      if (cM) cM.innerText = `${mutqinLogs.length} Setoran`;
+
+      renderPaginatedList(
+        'sim_muda_mutqin',
+        'sim-muda-list-mutqin',
+        mutqinLogs,
+        (l) => {
+          const dateStr = new Date(l.created_at).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+          const details = Array.isArray(l.mistake_details) ? l.mistake_details : [];
+          const mistakeCount = l.mistakes_count !== undefined ? l.mistakes_count : details.length;
+
+          const statusBadge = mistakeCount === 0
+            ? `<span class="text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-full">🟢 Mumtaz Bersih (0 Titik Rawan)</span>`
+            : `<span class="text-[9px] font-black bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full">⚠️ ${mistakeCount} Titik Rawan</span>`;
+
+          let detailItemsHtml = '';
+          if (details.length > 0) {
+            detailItemsHtml = `<div class="space-y-1 pt-1">` + details.map(m => {
+              const sName = (QURAN_SURAHS.find(s => s.no === m.surahNo) || {}).name || `Surat ${m.surahNo}`;
+              if (m.type === 'mirip') {
+                const simText = (m.similarAyahs || []).map(sa => {
+                  const saName = (QURAN_SURAHS.find(s => s.no === sa.surahNo) || {}).name || `Surat ${sa.surahNo}`;
+                  return `${saName}:${sa.ayah}`;
+                }).join(' & ');
+                return `<p class="text-[10px] text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200/70">🟠 <b>Ayat Mirip:</b> QS. ${sName}:${m.ayah} (Tertukar dg ${simText || '-'})</p>`;
+              } else if (m.type === 'mandeg') {
+                return `<p class="text-[10px] text-rose-800 bg-rose-50 px-2 py-0.5 rounded border border-rose-200/70">🔴 <b>Mandeg/Lupa:</b> QS. ${sName}:${m.ayah}</p>`;
+              } else {
+                return `<p class="text-[10px] text-yellow-900 bg-yellow-50 px-2 py-0.5 rounded border border-yellow-200/70">🟡 <b>Ragu/Goyang:</b> QS. ${sName}:${m.ayah}</p>`;
+              }
+            }).join('') + `</div>`;
+          }
+
+          return `
+            <div class="bg-white p-2.5 rounded-xl border border-amber-200/80 text-xs space-y-1 shadow-2xs">
+              <div class="flex flex-wrap items-center justify-between gap-1">
+                <div class="flex items-center gap-1.5">
+                  <span class="font-extrabold text-amber-950">👑 Juz ${l.juz}</span>
+                  ${statusBadge}
+                </div>
+                <span class="text-[10px] text-slate-400 font-mono">${dateStr}</span>
+              </div>
+              ${detailItemsHtml}
+              ${l.notes ? `<p class="text-[10px] text-slate-600 italic mt-0.5">"${l.notes}"</p>` : ''}
+            </div>
+          `;
+        },
+        '<p class="text-xs text-slate-400 italic text-center py-3">Belum ada catatan Ujian Mutqin santri.</p>'
+      );
+
+      renderSimMudawamahChartAndStats();
+    }
+
     function quickViewSelectedStudent() {
       const stId = document.getElementById('halaqah-student-select').value;
       if (stId) viewStudentActivity(stId);
@@ -2705,6 +3409,9 @@
         const activeUserId = authAccount?.id || currentUser?.id || null;
         const activeCategory = selectedHalaqahCategoryTab;
 
+        const selectedDateVal = document.getElementById('halaqah-activity-date')?.value || '';
+        const customCreatedAt = buildIsoTimestampFromDateInput(selectedDateVal);
+
         let payload = {
           student_id: studentId,
           pillar: activeCategory === 'Mahir (Tahfizh)' ? 'Ziyadah' : 'Tahsin',
@@ -2712,6 +3419,9 @@
           quality: '',
           notes: ''
         };
+        if (customCreatedAt) {
+          payload.created_at = customCreatedAt;
+        }
 
         if (activeUserId) {
           payload.muhafizh_id = activeUserId;
@@ -2843,6 +3553,7 @@
           showToast(`Catatan halaqah (${activeCategory}) berhasil disimpan!`);
           await onSelectHalaqahStudent(studentId);
         }
+        await loadAttendanceRecap();
       } catch (err) {
         showToast("Gagal: " + (err.message || "Terjadi kesalahan"), true);
       } finally {
@@ -2854,6 +3565,137 @@
         } else {
           btn.innerText = "Simpan Catatan Iqro";
         }
+      }
+    }
+
+    function getTodayLocalDateString() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    }
+
+    function toLocalDateInputValue(isoString) {
+      if (!isoString) return getTodayLocalDateString();
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return getTodayLocalDateString();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function buildIsoTimestampFromDateInput(dateStr) {
+      if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
+      const todayStr = getTodayLocalDateString();
+      if (dateStr === todayStr) {
+        return new Date().toISOString();
+      }
+      const [y, m, d] = dateStr.split('-').map(Number);
+      // Set jam 08:00 waktu lokal pada tanggal terpilih agar tidak bergeser hari akibat zona waktu UTC
+      const localDt = new Date(y, m - 1, d, 8, 0, 0);
+      return localDt.toISOString();
+    }
+
+    function resetHalaqahDateToToday() {
+      const dateInp = document.getElementById('halaqah-activity-date');
+      if (dateInp) dateInp.value = getTodayLocalDateString();
+    }
+
+    function openEditHalaqahModal(logId) {
+      const items = window.currentStudentHalaqahLogs || [];
+      const log = items.find(x => String(x.id) === String(logId));
+      if (!log) return showToast("Data catatan halaqah tidak ditemukan", true);
+
+      document.getElementById('edit-hlog-id').value = log.id;
+      document.getElementById('edit-hlog-student-id').value = log.student_id || '';
+      document.getElementById('edit-hlog-date').value = toLocalDateInputValue(log.created_at);
+      document.getElementById('edit-hlog-pillar').value = log.pillar || 'Tahsin';
+      document.getElementById('edit-hlog-juz').value = log.juz || '';
+      document.getElementById('edit-hlog-quality').value = log.quality || '';
+      document.getElementById('edit-hlog-surah').value = log.surah || '';
+      document.getElementById('edit-hlog-notes').value = log.notes || '';
+
+      document.getElementById('modal-edit-halaqah-log').classList.remove('hidden');
+    }
+
+    function closeEditHalaqahModal() {
+      document.getElementById('modal-edit-halaqah-log').classList.add('hidden');
+      document.getElementById('edit-hlog-id').value = '';
+    }
+
+    async function saveEditedHalaqahLog() {
+      const logId = document.getElementById('edit-hlog-id').value;
+      const studentId = document.getElementById('edit-hlog-student-id').value;
+      const dateVal = document.getElementById('edit-hlog-date').value;
+      const pillarVal = document.getElementById('edit-hlog-pillar').value;
+      const juzRaw = document.getElementById('edit-hlog-juz').value.trim();
+      const qualityVal = document.getElementById('edit-hlog-quality').value.trim();
+      const surahVal = document.getElementById('edit-hlog-surah').value.trim();
+      const notesVal = document.getElementById('edit-hlog-notes').value.trim();
+
+      if (!logId) return;
+      if (!dateVal) return showToast("Tanggal aktivitas wajib diisi", true);
+      if (!surahVal && !notesVal) return showToast("Isi materi/bacaan atau catatan evaluasi", true);
+
+      const btn = document.getElementById('btn-save-edit-hlog');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = "Menyimpan...";
+      }
+
+      try {
+        const updatedIso = buildIsoTimestampFromDateInput(dateVal);
+        const updatePayload = {
+          pillar: pillarVal,
+          juz: juzRaw ? parseInt(juzRaw, 10) : null,
+          quality: qualityVal || null,
+          surah: surahVal || null,
+          notes: notesVal || null
+        };
+        if (updatedIso) {
+          updatePayload.created_at = updatedIso;
+        }
+
+        const { error } = await sb.from('tahfizh_logs').update(updatePayload).eq('id', logId);
+        if (error) throw error;
+
+        showToast("Catatan halaqah & tanggal aktivitas berhasil diperbarui!");
+        closeEditHalaqahModal();
+        if (studentId) {
+          await onSelectHalaqahStudent(studentId);
+        }
+        await loadAttendanceRecap();
+      } catch (err) {
+        showToast("Gagal memperbarui catatan: " + (err.message || "Terjadi kesalahan"), true);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = "Simpan Perubahan";
+        }
+      }
+    }
+
+    async function deleteHalaqahLog(logId, studentId) {
+      const items = window.currentStudentHalaqahLogs || [];
+      const log = items.find(x => String(x.id) === String(logId));
+      const dateInfo = log?.created_at ? new Date(log.created_at).toLocaleDateString('id-ID') : '-';
+      const materiInfo = log?.surah || (log?.juz ? `Juz ${log.juz}` : 'Catatan Halaqah');
+
+      const ok = window.confirm(`Hapus Catatan Halaqah ini?
+
+Tanggal: ${dateInfo}
+Materi: ${materiInfo}
+
+Data yang dihapus tidak dapat dikembalikan.`);
+      if (!ok) return;
+
+      try {
+        const { error } = await sb.from('tahfizh_logs').delete().eq('id', logId);
+        if (error) throw error;
+
+        showToast("Catatan halaqah berhasil dihapus!");
+        if (studentId) {
+          await onSelectHalaqahStudent(studentId);
+        }
+        await loadAttendanceRecap();
+      } catch (err) {
+        showToast("Gagal menghapus catatan: " + (err.message || "Terjadi kesalahan"), true);
       }
     }
 
@@ -3487,16 +4329,7 @@
       );
 
       try {
-        let q = sb.from('mudawamah_logs').select('*');
-        if (student.student_email) {
-          const dispStIdent = formatDisplayIdentifier(student.student_email);
-          const normStIdent = normalizeAuthIdentifier(student.student_email);
-          q = q.or(`student_id.eq.${studentId},notes.ilike.%${normStIdent}%,notes.ilike.%${dispStIdent}%`);
-        } else {
-          q = q.eq('student_id', studentId);
-        }
-        const { data: mLogs } = await q.order('created_at', { ascending: false });
-        const mudaData = mLogs || [];
+        const mudaData = await fetchMudawamahLogsForStudent(student);
         if (currentModalRaporCache) currentModalRaporCache.mudawamah = mudaData;
 
         const streaks = calculateStreaks(mudaData);
@@ -3504,28 +4337,48 @@
 
         const ziyadahMuda = mudaData.filter(x => x.pillar === 'Ziyadah').length;
         const ulangMuda = mudaData.filter(x => x.pillar === 'Ulang 7 Hari').length;
-        const mutqinMuda = mudaData.filter(x => x.pillar === 'Mutqin').length;
+        const mutqinMuda = mudaData.filter(x => x.pillar === 'Mutqin' || x.pillar === 'Hafizh Mutqin').length;
 
         document.getElementById('modal-act-muda-ziyadah').innerText = `${ziyadahMuda}x`;
         document.getElementById('modal-act-muda-ulang').innerText = `${ulangMuda}x`;
         document.getElementById('modal-act-muda-mutqin').innerText = `${mutqinMuda}x`;
 
+        setModalMudawamahPeriod('weekly');
+
         renderPaginatedList(
           'modal_mudawamah',
           'modal-act-mudawamah-list',
           mudaData,
-          (m) => `
-            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 text-xs space-y-1">
-              <div class="flex justify-between items-center">
-                <span class="text-[9px] font-black px-2 py-0.5 rounded-md border uppercase ${m.pillar === 'Ulang 7 Hari' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : (m.pillar === 'Ziyadah' ? 'bg-teal-50 text-teal-700 border-teal-200' : 'bg-amber-50 text-amber-700 border-amber-200')}">
-                  ${m.pillar}
-                </span>
-                <span class="text-[10px] text-slate-400 font-mono">${new Date(m.created_at).toLocaleDateString('id-ID')}</span>
+          (m) => {
+            let qualityTag = '';
+            if (m.pillar === 'Ulang 7 Hari') {
+              qualityTag = m.quality === 'Hijau'
+                ? `<span class="text-[9px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">🟢 Lancar</span>`
+                : (m.quality === 'Kuning'
+                  ? `<span class="text-[9px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full">🟡 Ragu</span>`
+                  : `<span class="text-[9px] font-bold bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full">🔴 Rapuh</span>`);
+            } else if (m.pillar === 'Mutqin' || m.pillar === 'Hafizh Mutqin') {
+              const mc = m.mistakes_count || 0;
+              qualityTag = mc === 0
+                ? `<span class="text-[9px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">🟢 Mumtaz</span>`
+                : `<span class="text-[9px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full">⚠️ ${mc} Titik Rawan</span>`;
+            }
+            return `
+              <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 text-xs space-y-1">
+                <div class="flex flex-wrap justify-between items-center gap-1">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-[9px] font-black px-2 py-0.5 rounded-md border uppercase ${m.pillar === 'Ulang 7 Hari' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : (m.pillar === 'Ziyadah' ? 'bg-teal-50 text-teal-700 border-teal-200' : 'bg-amber-50 text-amber-700 border-amber-200')}">
+                      ${m.pillar}
+                    </span>
+                    ${qualityTag}
+                  </div>
+                  <span class="text-[10px] text-slate-400 font-mono">${new Date(m.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                </div>
+                <p class="font-bold text-slate-800 text-[11px]">${m.surah || 'Juz ' + m.juz} ${m.ayah_start ? `(Ayat ${m.ayah_start}-${m.ayah_end})` : ''} ${m.repetition_count ? `• ${m.repetition_count}x Ulang` : ''}</p>
+                ${m.notes ? `<p class="text-[10px] text-slate-600 italic">"${m.notes}"</p>` : ''}
               </div>
-              <p class="font-bold text-slate-800 text-[11px]">${m.surah || 'Juz ' + m.juz} ${m.ayah_start ? `(Ayat ${m.ayah_start}-${m.ayah_end})` : ''} ${m.repetition_count ? `• ${m.repetition_count}x Ulang` : ''}</p>
-              ${m.notes ? `<p class="text-[10px] text-slate-500 italic">"${m.notes}"</p>` : ''}
-            </div>
-          `,
+            `;
+          },
           '<p class="text-xs text-slate-400 italic p-3 text-center">Santri belum memiliki catatan mandiri di Tracker Mudawamah.</p>'
         );
       } catch (e) {
@@ -3596,6 +4449,179 @@
           btn.className = (tabId === `act-${t}`) 
             ? "flex-1 py-1.5 rounded-xl bg-white text-teal-800 shadow-sm transition"
             : "flex-1 py-1.5 rounded-xl text-slate-500 hover:text-slate-800 transition";
+        }
+      });
+      if (tabId === 'act-mudawamah') {
+        setTimeout(() => renderModalMudawamahChart(), 50);
+      }
+    }
+
+    let modalMudawamahChartInstance = null;
+    let activeModalMudaPeriod = 'weekly';
+
+    function setModalMudawamahPeriod(period) {
+      activeModalMudaPeriod = period;
+      ['daily', 'weekly', 'monthly', 'yearly', 'lifetime'].forEach(p => {
+        const btn = document.getElementById(`btn-modal-muda-period-${p}`);
+        if (btn) {
+          btn.className = (p === period)
+            ? "px-2 py-0.5 rounded-md bg-white text-teal-800 shadow-2xs font-extrabold"
+            : "px-2 py-0.5 rounded-md text-slate-600 font-semibold";
+        }
+      });
+      renderModalMudawamahChart();
+    }
+
+    function renderModalMudawamahChart() {
+      const logs = (currentModalRaporCache && currentModalRaporCache.mudawamah) ? currentModalRaporCache.mudawamah : [];
+      const now = new Date();
+      let filteredLogs = [];
+      let labels = [];
+      let ziyadahEffortPages = [];
+      let ulangPages = [];
+      let mutqinPages = [];
+
+      if (activeModalMudaPeriod === 'daily') {
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+        filteredLogs = logs.filter(l => new Date(l.created_at) >= todayStart);
+        labels = ['00-06', '06-09', '09-12', '12-15', '15-18', '18-21', '21-24'];
+        ziyadahEffortPages = new Array(7).fill(0);
+        ulangPages = new Array(7).fill(0);
+        mutqinPages = new Array(7).fill(0);
+        filteredLogs.forEach(l => {
+          const h = new Date(l.created_at).getHours();
+          let idx = 0;
+          if (h >= 6 && h < 9) idx = 1;
+          else if (h >= 9 && h < 12) idx = 2;
+          else if (h >= 12 && h < 15) idx = 3;
+          else if (h >= 15 && h < 18) idx = 4;
+          else if (h >= 18 && h < 21) idx = 5;
+          else if (h >= 21) idx = 6;
+          if (l.pillar === 'Ziyadah') ziyadahEffortPages[idx] += (parseFloat(l.portion_value || 1.0) * parseInt(l.repetition_count || 1));
+          else if (l.pillar === 'Ulang 7 Hari') ulangPages[idx] += 20;
+          else if (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin') mutqinPages[idx] += 20;
+        });
+      } else if (activeModalMudaPeriod === 'weekly') {
+        const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+        const dayMap = {};
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          labels.push(`${dayNames[d.getDay()]} (${d.getDate()})`);
+          dayMap[key] = labels.length - 1;
+        }
+        const startSevenDays = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0);
+        filteredLogs = logs.filter(l => new Date(l.created_at) >= startSevenDays);
+        ziyadahEffortPages = new Array(7).fill(0);
+        ulangPages = new Array(7).fill(0);
+        mutqinPages = new Array(7).fill(0);
+        filteredLogs.forEach(l => {
+          const ld = new Date(l.created_at);
+          const key = `${ld.getFullYear()}-${String(ld.getMonth() + 1).padStart(2, '0')}-${String(ld.getDate()).padStart(2, '0')}`;
+          const idx = dayMap[key];
+          if (idx !== undefined) {
+            if (l.pillar === 'Ziyadah') ziyadahEffortPages[idx] += (parseFloat(l.portion_value || 1.0) * parseInt(l.repetition_count || 1));
+            else if (l.pillar === 'Ulang 7 Hari') ulangPages[idx] += 20;
+            else if (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin') mutqinPages[idx] += 20;
+          }
+        });
+      } else if (activeModalMudaPeriod === 'monthly') {
+        filteredLogs = logs.filter(l => {
+          const d = new Date(l.created_at);
+          return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        });
+        labels = ['Pekan 1 (1-7)', 'Pekan 2 (8-14)', 'Pekan 3 (15-21)', 'Pekan 4 (22-dst)'];
+        ziyadahEffortPages = [0, 0, 0, 0];
+        ulangPages = [0, 0, 0, 0];
+        mutqinPages = [0, 0, 0, 0];
+        filteredLogs.forEach(l => {
+          const date = new Date(l.created_at).getDate();
+          const wIdx = Math.min(3, Math.floor((date - 1) / 7));
+          if (l.pillar === 'Ziyadah') ziyadahEffortPages[wIdx] += (parseFloat(l.portion_value || 1.0) * parseInt(l.repetition_count || 1));
+          else if (l.pillar === 'Ulang 7 Hari') ulangPages[wIdx] += 20;
+          else if (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin') mutqinPages[wIdx] += 20;
+        });
+      } else if (activeModalMudaPeriod === 'yearly') {
+        filteredLogs = logs.filter(l => new Date(l.created_at).getFullYear() === now.getFullYear());
+        labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        ziyadahEffortPages = new Array(12).fill(0);
+        ulangPages = new Array(12).fill(0);
+        mutqinPages = new Array(12).fill(0);
+        filteredLogs.forEach(l => {
+          const m = new Date(l.created_at).getMonth();
+          if (l.pillar === 'Ziyadah') ziyadahEffortPages[m] += (parseFloat(l.portion_value || 1.0) * parseInt(l.repetition_count || 1));
+          else if (l.pillar === 'Ulang 7 Hari') ulangPages[m] += 20;
+          else if (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin') mutqinPages[m] += 20;
+        });
+      } else {
+        filteredLogs = [...logs];
+        const yearsSet = new Set(logs.map(l => new Date(l.created_at).getFullYear()));
+        if (yearsSet.size === 0) yearsSet.add(now.getFullYear());
+        const sortedYears = Array.from(yearsSet).sort((a, b) => a - b);
+        labels = sortedYears.map(y => `Thn ${y}`);
+        ziyadahEffortPages = new Array(sortedYears.length).fill(0);
+        ulangPages = new Array(sortedYears.length).fill(0);
+        mutqinPages = new Array(sortedYears.length).fill(0);
+        filteredLogs.forEach(l => {
+          const yIdx = sortedYears.indexOf(new Date(l.created_at).getFullYear());
+          if (yIdx !== -1) {
+            if (l.pillar === 'Ziyadah') ziyadahEffortPages[yIdx] += (parseFloat(l.portion_value || 1.0) * parseInt(l.repetition_count || 1));
+            else if (l.pillar === 'Ulang 7 Hari') ulangPages[yIdx] += 20;
+            else if (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin') mutqinPages[yIdx] += 20;
+          }
+        });
+      }
+
+      const canvasEl = document.getElementById('modalMudawamahPeriodChart');
+      if (!canvasEl || typeof Chart === 'undefined') return;
+      const ctx = canvasEl.getContext('2d');
+      if (modalMudawamahChartInstance) modalMudawamahChartInstance.destroy();
+
+      modalMudawamahChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Ziyadah (Hal x Diulang)',
+              data: ziyadahEffortPages.map(v => parseFloat(v.toFixed(1))),
+              backgroundColor: '#0d9488',
+              borderRadius: 4,
+              barPercentage: 0.85,
+              categoryPercentage: 0.75
+            },
+            {
+              label: 'Ulang 7 Hari (20 Hal/Setor)',
+              data: ulangPages,
+              backgroundColor: '#6366f1',
+              borderRadius: 4,
+              barPercentage: 0.85,
+              categoryPercentage: 0.75
+            },
+            {
+              label: 'Mutqin (20 Hal/Setor)',
+              data: mutqinPages,
+              backgroundColor: '#f59e0b',
+              borderRadius: 4,
+              barPercentage: 0.85,
+              categoryPercentage: 0.75
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: { boxWidth: 8, font: { size: 9, weight: 'bold' }, color: '#475569' }
+            }
+          },
+          scales: {
+            y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { color: '#94a3b8', font: { size: 9 }, stepSize: 5 } },
+            x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 8 } } }
+          }
         }
       });
     }
@@ -5353,12 +6379,12 @@
               <!-- Batang Halaqah -->
               <div class="flex flex-col items-center w-5 sm:w-6 h-full justify-end group" title="Halaqah: ${hAvg}% (${b.hCount} pertemuan)">
                 <span class="text-[8px] font-extrabold text-teal-800 mb-0.5">${b.hCount > 0 ? hAvg + '%' : '-'}</span>
-                <div class="w-full bg-teal-600 rounded-t-md transition-all duration-300" style="height: ${hHeight}%"></div>
+                <div class="w-full bg-teal-600 rounded-t-md transition-all duration-300" style="height: ${b.hCount > 0 ? Math.max(8, Math.round(hHeight * 1.1)) : 2}px; opacity: ${b.hCount > 0 ? '1' : '0.2'}"></div>
               </div>
               <!-- Batang Ulumuddin -->
               <div class="flex flex-col items-center w-5 sm:w-6 h-full justify-end group" title="Ulumuddin: ${uAvg}% (${b.uCount} pertemuan)">
                 <span class="text-[8px] font-extrabold text-indigo-800 mb-0.5">${b.uCount > 0 ? uAvg + '%' : '-'}</span>
-                <div class="w-full bg-indigo-600 rounded-t-md transition-all duration-300" style="height: ${uHeight}%"></div>
+                <div class="w-full bg-indigo-600 rounded-t-md transition-all duration-300" style="height: ${b.uCount > 0 ? Math.max(8, Math.round(uHeight * 1.1)) : 2}px; opacity: ${b.uCount > 0 ? '1' : '0.2'}"></div>
               </div>
             </div>
             <span class="text-[9px] font-bold text-slate-700 mt-1.5 text-center leading-tight">${b.label}</span>
@@ -5409,13 +6435,14 @@
 
       // 1. REKAP HALAQAH QUR'AN PER PERTEMUAN (Dikelompokkan berdasarkan tanggal pertemuan dari tahfizh_logs)
       try {
-        const { data: tLogs } = await sb.from('tahfizh_logs').select('id, student_id, pillar, surah, quality, created_at').order('created_at', { ascending: false });
+        const { data: tLogs } = await sb.from('tahfizh_logs').select('*').order('created_at', { ascending: false });
         const logs = tLogs || [];
 
-        // Kelompokkan per tanggal pertemuan (YYYY-MM-DD)
+        // Kelompokkan per tanggal pertemuan (YYYY-MM-DD), abaikan log sistem perubahan kategori
         const sessionsMap = {};
         logs.forEach(l => {
           if (!l.created_at) return;
+          if (l.notes && String(l.notes).includes('[SYSTEM_CATEGORY:')) return;
           const d = new Date(l.created_at);
           if (isNaN(d.getTime())) return;
           const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -5453,6 +6480,11 @@
             const denom = totalAllStudents > 0 ? totalAllStudents : hadirCount;
             const pct = denom > 0 ? Math.min(100, Math.round((hadirCount / denom) * 1000) / 10) : 0;
             sumPct += pct;
+            const meetingNumber = totalMeetings - idx;
+            const formattedDate = sess.dateObj.toLocaleDateString('id-ID', {
+              weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+            });
+
             cachedHalaqahSessions.push({
               dateObj: sess.dateObj,
               dateLabel: formattedDate,
@@ -5460,11 +6492,6 @@
               denom,
               pct,
               totalLogsCount: sess.totalLogsCount
-            });
-
-            const meetingNumber = totalMeetings - idx;
-            const formattedDate = sess.dateObj.toLocaleDateString('id-ID', {
-              weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
             });
 
             const barColor = pct >= 80 ? 'bg-emerald-500' : (pct >= 50 ? 'bg-amber-500' : 'bg-rose-500');
