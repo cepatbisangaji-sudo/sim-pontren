@@ -157,26 +157,7 @@
             </button>
           </div>
 
-          <!-- Listing Nama Santri Berdasarkan Sub-Tab Aktif dengan Kotak Pencarian -->
-          <div class="bg-slate-50/80 border border-slate-200/70 rounded-2xl p-3 space-y-2.5">
-            <div class="flex items-center justify-between">
-              <span id="halaqah-cat-list-title" class="text-[11px] font-bold text-slate-700">Daftar Santri Kategori: Terbata-bata</span>
-              <span class="text-[9px] text-slate-400">Klik nama santri untuk input setoran</span>
-            </div>
-            
-            <!-- Kolom Pencarian Nama Santri di Tab Halaqah -->
-            <div class="relative">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
-              <input id="search-halaqah-santri-input" type="text" oninput="onSearchHalaqahSantriInput(this.value)" placeholder="Cari nama santri atau NIS dalam kategori ini..." class="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-16 py-2 text-xs text-slate-800 font-semibold focus:outline-none focus:border-teal-600 transition">
-              <button type="button" id="btn-clear-search-halaqah" onclick="clearSearchHalaqahSantri()" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-500 hover:text-rose-600 bg-slate-200/70 hover:bg-rose-50 px-2 py-0.5 rounded-md transition">
-                Reset
-              </button>
-            </div>
 
-            <div id="halaqah-category-students-list" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-44 overflow-y-auto pr-1">
-              <!-- Diisi otomatis via JS -->
-            </div>
-          </div>
         </div>
 
         <!-- FORM SETORAN / PEMBELAJARAN HALAQAH SANTRI (DINAMIS SESUAI SUB-TAB) -->
@@ -1390,33 +1371,7 @@
     <!-- Main Container -->
     <main class="max-w-md mx-auto px-4 -mt-5 space-y-3.5">
       
-      <!-- PEMILIH SANTRI MAHIR KHUSUS USTADZ DI ANTARMUKA MUDAWAMAH DENGAN PENCARIAN -->
-      <section id="muda-ustadz-student-bar" class="hidden bg-white p-4 rounded-3xl border border-amber-300/80 shadow-sm space-y-2.5">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-          <div class="flex items-center gap-1.5">
-            <span class="text-xs">🔥</span>
-            <span class="text-xs font-extrabold text-amber-900">Pilih Santri Kategori Mahir (Tahfizh)</span>
-          </div>
-          <span class="text-[9px] bg-amber-50 text-amber-800 font-bold px-2.5 py-0.5 rounded-full border border-amber-200">Mode Ustadz</span>
-        </div>
-        
-        <!-- Kolom Pencarian Santri Mahir -->
-        <div class="relative">
-          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
-          <input id="search-muda-santri-input" type="text" oninput="onSearchMudaSantriInput(this.value)" placeholder="Cari nama santri Mahir atau NIS..." class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-16 py-2 text-xs text-slate-800 font-semibold focus:outline-none focus:border-amber-600 transition">
-          <button type="button" id="btn-clear-search-muda" onclick="clearSearchMudaSantri()" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-500 hover:text-rose-600 bg-slate-200/70 px-2 py-0.5 rounded-md transition">
-            Reset
-          </button>
-        </div>
 
-        <!-- Daftar Santri Mahir (Scrollable Grid) -->
-        <div id="muda-mahir-students-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-40 overflow-y-auto pr-1"></div>
-        
-        <div class="flex justify-between items-center pt-1 border-t border-slate-100 text-[10px] text-slate-500 font-medium">
-          <span id="muda-selected-santri-label">Santri Terpilih: <b>Pribadi Ustadz</b></span>
-          <button type="button" onclick="onChangeMudaUstadzTargetStudent('')" class="text-teal-700 hover:underline font-bold">Reset ke Pribadi</button>
-        </div>
-      </section>
 
       <!-- TOP METRICS CARDS -->
       <div class="grid grid-cols-3 gap-2.5">
@@ -2789,7 +2744,11 @@
 
       btnQuick.classList.remove('hidden');
       historyCard.classList.remove('hidden');
-      if (mudaQuickBox) mudaQuickBox.classList.remove('hidden');
+      const showMudaPanel = (selectedHalaqahCategoryTab === 'Mahir (Tahfizh)');
+      if (mudaQuickBox) {
+        if (showMudaPanel) mudaQuickBox.classList.remove('hidden');
+        else mudaQuickBox.classList.add('hidden');
+      }
       historyList.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-2">Memuat 10 pertemuan terakhir...</p>';
 
       const { data: logs } = await sb.from('tahfizh_logs')
@@ -2842,26 +2801,28 @@
         '<p class="text-xs text-slate-400 italic text-center py-2">Belum ada riwayat pertemuan sebelumnya.</p>'
       );
 
-      try {
-        const studentObj = studentsList.find(s => s.id === studentId);
-        const mLogs = await fetchMudawamahLogsForStudent(studentObj);
-        const streakCount = calculateStreaks(mLogs).current;
-        document.getElementById('quick-mudawamah-streak').innerText = `Streak: ${streakCount} Hari`;
+      if (selectedHalaqahCategoryTab === 'Mahir (Tahfizh)') {
+        try {
+          const studentObj = studentsList.find(s => s.id === studentId);
+          const mLogs = await fetchMudawamahLogsForStudent(studentObj);
+          const streakCount = calculateStreaks(mLogs).current;
+          document.getElementById('quick-mudawamah-streak').innerText = `Streak: ${streakCount} Hari`;
 
-        if (mLogs.length > 0) {
-          const lastM = mLogs[0];
-          const lastMDate = new Date(lastM.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-          let desc = `Latihan terakhir (${lastMDate}): [${lastM.pillar}] ${lastM.surah || 'Juz ' + lastM.juz}`;
-          if (lastM.repetition_count) desc += ` (${lastM.repetition_count}x Ulang)`;
-          document.getElementById('quick-mudawamah-last-info').innerText = desc;
-        } else {
-          document.getElementById('quick-mudawamah-last-info').innerText = "Santri belum memiliki catatan latihan di Tracker Mudawamah.";
+          if (mLogs.length > 0) {
+            const lastM = mLogs[0];
+            const lastMDate = new Date(lastM.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+            let desc = `Latihan terakhir (${lastMDate}): [${lastM.pillar}] ${lastM.surah || 'Juz ' + lastM.juz}`;
+            if (lastM.repetition_count) desc += ` (${lastM.repetition_count}x Ulang)`;
+            document.getElementById('quick-mudawamah-last-info').innerText = desc;
+          } else {
+            document.getElementById('quick-mudawamah-last-info').innerText = "Santri belum memiliki catatan latihan di Tracker Mudawamah.";
+          }
+
+          renderSimMudawamahEvaluationPanels(mLogs);
+        } catch (err) {
+          document.getElementById('quick-mudawamah-last-info').innerText = "Belum ada catatan aktivitas mudawamah.";
+          renderSimMudawamahEvaluationPanels([]);
         }
-
-        renderSimMudawamahEvaluationPanels(mLogs);
-      } catch (err) {
-        document.getElementById('quick-mudawamah-last-info').innerText = "Belum ada catatan aktivitas mudawamah.";
-        renderSimMudawamahEvaluationPanels([]);
       }
 
       // Auto-sinkronkan progres terakhir santri sesuai kategori aktif
@@ -6860,14 +6821,7 @@ Data yang dihapus tidak dapat dikembalikan.`);
           else btnBackSim.classList.add('hidden');
         }
 
-        if (ustBar) {
-          if (!isSantriOnly && studentsList.length > 0) {
-            ustBar.classList.remove('hidden');
-            renderMudaMahirStudentsGrid();
-          } else {
-            ustBar.classList.add('hidden');
-          }
-        }
+        ustadzSelectedMudaStudentId = '';
 
         initSurahDropdowns();
         initHaditsSlider();
