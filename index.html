@@ -8938,15 +8938,28 @@ Data yang dihapus tidak dapat dikembalikan.`);
         item.className = 'bg-slate-50 p-3 rounded-2xl border border-slate-100 space-y-1.5 text-xs';
         let rankBadge = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : `#${index + 1}`));
         let metricText = '';
+        let subPagesText = '';
+        let breakdownHtml = '';
 
         if (type === 'total_all') {
           metricText = `<span class="text-teal-800 font-black">${santri.totalActivitiesCount}x Total Aktivitas</span>`;
+          subPagesText = `<p class="text-[9px] text-slate-500 font-mono font-semibold">Total Beban: ${santri.totalPages} Hal</p>`;
+          breakdownHtml = `
+            <div class="grid grid-cols-3 gap-1 pt-1.5 border-t border-slate-200/70 text-[9px] text-center font-semibold">
+              <span class="bg-white rounded-md py-0.5 border border-slate-200/70 text-teal-800">🌱 Ziyadah: <b>${santri.ziyadahCount}x</b></span>
+              <span class="bg-white rounded-md py-0.5 border border-slate-200/70 text-indigo-700">🔁 Ulang 7H: <b>${santri.ulang7Count}x</b></span>
+              <span class="bg-white rounded-md py-0.5 border border-slate-200/70 text-amber-800">👑 Mutqin: <b>${santri.mutqinCount}x</b> (${santri.mutqinJuz} Juz)</span>
+            </div>
+          `;
         } else if (type === 'mutqin') {
           metricText = `<span class="text-amber-700 font-extrabold">${santri.mutqinJuz} Juz Mutqin (${santri.mutqinCount}x)</span>`;
+          subPagesText = `<p class="text-[9px] text-slate-500 font-mono font-semibold">${santri.mutqinPages} Hal Mutqin</p>`;
         } else if (type === 'ziyadah') {
           metricText = `<span class="text-teal-700 font-extrabold">${santri.ziyadahCount}x Ziyadah</span>`;
+          subPagesText = `<p class="text-[9px] text-slate-500 font-mono font-semibold">${santri.ziyadahPages} Hal Effort</p>`;
         } else {
           metricText = `<span class="text-indigo-600 font-extrabold">${santri.ulang7Count}x Ulang 7 Hari</span>`;
+          subPagesText = `<p class="text-[9px] text-slate-500 font-mono font-semibold">${santri.ulang7Pages} Hal Ulang 7H</p>`;
         }
 
         const roleBadgeHtml = santri.roleLabel === 'Santri Mahir'
@@ -8967,14 +8980,10 @@ Data yang dihapus tidak dapat dikembalikan.`);
             </div>
             <div class="text-right">
               <div>${metricText}</div>
-              <p class="text-[9px] text-slate-500 font-mono font-semibold">Total Beban: ${santri.totalPages} Hal</p>
+              ${subPagesText}
             </div>
           </div>
-          <div class="grid grid-cols-3 gap-1 pt-1.5 border-t border-slate-200/70 text-[9px] text-center font-semibold">
-            <span class="bg-white rounded-md py-0.5 border border-slate-200/70 text-teal-800">🌱 Ziyadah: <b>${santri.ziyadahCount}x</b></span>
-            <span class="bg-white rounded-md py-0.5 border border-slate-200/70 text-indigo-700">🔁 Ulang 7H: <b>${santri.ulang7Count}x</b></span>
-            <span class="bg-white rounded-md py-0.5 border border-slate-200/70 text-amber-800">👑 Mutqin: <b>${santri.mutqinCount}x</b> (${santri.mutqinJuz} Juz)</span>
-          </div>
+          ${breakdownHtml}
         `;
         container.appendChild(item);
       });
@@ -9081,31 +9090,18 @@ Data yang dihapus tidak dapat dikembalikan.`);
           ? `<button type="button" onclick="viewStudentActivity('${item.studentId}')" class="text-[9px] font-bold text-teal-700 bg-white hover:bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-lg transition">👁️ Rapor</button>`
           : '';
 
-        return `
-          <div class="p-3 rounded-2xl border ${cardHighlight} space-y-2 text-xs shadow-2xs">
-            <div class="flex items-start justify-between gap-2">
-              <div class="flex items-center gap-2.5">
-                <div class="w-7 h-7 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-black text-xs shrink-0">
-                  ${rankBadge}
-                </div>
-                <div>
-                  <div class="flex flex-wrap items-center gap-1.5">
-                    <p class="font-extrabold text-slate-800">${item.name}</p>
-                    ${roleBadge}
-                    ${pantauBtn}
-                  </div>
-                  <p class="text-[10px] text-slate-400 font-mono mt-0.5">${item.email}</p>
-                </div>
-              </div>
-              <div class="text-right shrink-0">
-                <span class="inline-block bg-teal-700 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-2xs">
-                  🔥 ${item.totalActivitiesCount}x Aktivitas
-                </span>
-                <p class="text-[10px] text-slate-600 font-mono font-bold mt-0.5">Total Effort: ${item.totalPages} Hal</p>
-              </div>
-            </div>
+        let rightMetricHtml = '';
+        let threePillarsHtml = '';
 
-            <!-- Rincian 3 Pilar: Ziyadah + Ulang 7 Hari + Mutqin -->
+        if (sortType === 'total_all') {
+          rightMetricHtml = `
+            <span class="inline-block bg-teal-700 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-2xs">
+              🔥 ${item.totalActivitiesCount}x Total Aktivitas
+            </span>
+            <p class="text-[10px] text-slate-600 font-mono font-bold mt-0.5">Total Effort: ${item.totalPages} Hal</p>
+          `;
+          threePillarsHtml = `
+            <!-- Rincian 3 Pilar (Hanya Tampil untuk Total Keseluruhan Effort) -->
             <div class="grid grid-cols-3 gap-1.5 pt-1.5 border-t border-slate-200/70 text-[10px]">
               <div class="bg-white p-1.5 rounded-xl border border-teal-100 text-center">
                 <span class="block text-[9px] text-slate-400 font-bold">🌱 Ziyadah</span>
@@ -9123,6 +9119,52 @@ Data yang dihapus tidak dapat dikembalikan.`);
                 <span class="block text-[8px] text-slate-500 font-mono">${item.mutqinPages} Hal</span>
               </div>
             </div>
+          `;
+        } else if (sortType === 'ziyadah') {
+          rightMetricHtml = `
+            <span class="inline-block bg-teal-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-2xs">
+              ⚡ ${item.ziyadahCount}x Ziyadah
+            </span>
+            <p class="text-[10px] text-teal-800 font-mono font-bold mt-0.5">${item.ziyadahPages} Hal Effort</p>
+          `;
+        } else if (sortType === 'ulang7') {
+          rightMetricHtml = `
+            <span class="inline-block bg-indigo-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-2xs">
+              🔁 ${item.ulang7Count}x Ulang 7 Hari
+            </span>
+            <p class="text-[10px] text-indigo-800 font-mono font-bold mt-0.5">${item.ulang7Pages} Hal Ulang 7H</p>
+          `;
+        } else {
+          // mutqin
+          rightMetricHtml = `
+            <span class="inline-block bg-amber-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-2xs">
+              👑 ${item.mutqinJuz} Juz Mutqin (${item.mutqinCount}x)
+            </span>
+            <p class="text-[10px] text-amber-800 font-mono font-bold mt-0.5">${item.mutqinPages} Hal Mutqin</p>
+          `;
+        }
+
+        return `
+          <div class="p-3 rounded-2xl border ${cardHighlight} space-y-2 text-xs shadow-2xs">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-black text-xs shrink-0">
+                  ${rankBadge}
+                </div>
+                <div>
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <p class="font-extrabold text-slate-800">${item.name}</p>
+                    ${roleBadge}
+                    ${pantauBtn}
+                  </div>
+                  <p class="text-[10px] text-slate-400 font-mono mt-0.5">${item.email}</p>
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                ${rightMetricHtml}
+              </div>
+            </div>
+            ${threePillarsHtml}
           </div>
         `;
       }).join('');
