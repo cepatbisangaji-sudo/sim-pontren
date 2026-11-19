@@ -119,6 +119,7 @@
         <button onclick="switchInternalTab('tab-halaqah')" id="btn-tab-halaqah" class="flex-1 py-2 px-3 rounded-xl bg-white text-teal-800 shadow-sm whitespace-nowrap">Halaqah Qur'an</button>
         <button onclick="switchInternalTab('tab-talim')" id="btn-tab-talim" class="flex-1 py-2 px-3 rounded-xl text-slate-600 hover:text-slate-900 whitespace-nowrap">Ulumuddin</button>
         <button onclick="switchInternalTab('tab-absensi')" id="btn-tab-absensi" class="flex-1 py-2 px-3 rounded-xl text-slate-600 hover:text-slate-900 whitespace-nowrap">Absensi</button>
+        <button onclick="switchInternalTab('tab-rekap-mudawamah')" id="btn-tab-rekap-mudawamah" class="flex-1 py-2 px-3 rounded-xl text-slate-600 hover:text-slate-900 whitespace-nowrap">Rekap Mudawamah</button>
         <button onclick="switchInternalTab('tab-santri')" id="btn-tab-santri" class="flex-1 py-2 px-3 rounded-xl text-slate-600 hover:text-slate-900 whitespace-nowrap">Data Santri</button>
         <button onclick="switchInternalTab('tab-pengampu')" id="btn-tab-pengampu" class="hidden flex-1 py-2 px-3 rounded-xl text-slate-600 hover:text-slate-900 whitespace-nowrap">Ustadz</button>
         <button onclick="switchInternalTab('tab-keuangan')" id="btn-tab-keuangan" class="flex-1 py-2 px-3 rounded-xl text-slate-600 hover:text-slate-900 whitespace-nowrap">Kas & Iuran</button>
@@ -170,16 +171,27 @@
             <span id="halaqah-active-cat-badge" class="text-[10px] bg-amber-50 text-amber-800 font-extrabold px-2.5 py-0.5 rounded-full border border-amber-200">Terbata-bata</span>
           </div>
 
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="text-[11px] text-slate-500 font-semibold">Santri Terpilih (<span id="halaqah-select-cat-label">Terbata-bata</span>)</label>
-              <button id="btn-quick-view-history" type="button" onclick="quickViewSelectedStudent()" class="hidden text-[10px] text-teal-700 hover:text-teal-900 font-bold flex items-center gap-1 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-2.5 py-0.5 rounded-lg transition">
-                <span>📖</span> Buku Rapor Lengkap
+          <div class="space-y-2">
+            <!-- Pencarian Cepat Nama Santri di Tab Halaqah -->
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
+              <input id="search-halaqah-santri-input" type="text" oninput="onSearchHalaqahSantriInput(this.value)" placeholder="Ketik nama santri atau NIS untuk mencari..." class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-16 py-2 text-xs text-slate-800 font-semibold focus:outline-none focus:border-teal-600 focus:bg-white transition">
+              <button type="button" id="btn-clear-search-halaqah" onclick="clearSearchHalaqahSantri()" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-500 hover:text-rose-600 bg-slate-200/70 hover:bg-rose-50 px-2 py-0.5 rounded-md transition">
+                Reset
               </button>
             </div>
-            <select id="halaqah-student-select" onchange="onSelectHalaqahStudent(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-bold focus:outline-none focus:border-teal-600">
-              <option value="">-- Pilih Santri --</option>
-            </select>
+
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="text-[11px] text-slate-500 font-semibold">Santri Terpilih (<span id="halaqah-select-cat-label">Terbata-bata</span>)</label>
+                <button id="btn-quick-view-history" type="button" onclick="quickViewSelectedStudent()" class="hidden text-[10px] text-teal-700 hover:text-teal-900 font-bold flex items-center gap-1 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-2.5 py-0.5 rounded-lg transition">
+                  <span>📖</span> Buku Rapor Lengkap
+                </button>
+              </div>
+              <select id="halaqah-student-select" onchange="onSelectHalaqahStudent(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 font-bold focus:outline-none focus:border-teal-600">
+                <option value="">-- Pilih Santri --</option>
+              </select>
+            </div>
           </div>
 
           <!-- PILIHAN TANGGAL AKTIVITAS HALAQAH (UNTUK INPUT SUSULAN / REVISI TANGGAL) -->
@@ -644,6 +656,97 @@
             <div id="recap-ulumuddin-list" class="space-y-2 max-h-[26rem] overflow-y-auto pr-1">
               <p class="text-xs text-slate-400 italic text-center py-4">Memuat rekap absensi Ulumuddin...</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2C. TAB REKAP MUDAWAMAH (RANKING & TOTAL EFFORT PER BULAN, TAHUN, SEPANJANG MASA) -->
+      <section id="tab-rekap-mudawamah" class="internal-tab hidden space-y-3.5">
+        <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+          <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-100 pb-3">
+            <div>
+              <h3 class="font-extrabold text-xs text-slate-800">🏆 Rekap & Ranking Mudawamah</h3>
+              <p id="sim-rank-period-subtitle" class="text-[10px] text-slate-400">Peringkat total effort & konsistensi hafalan (Ustadz & Santri Mahir).</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <button type="button" onclick="downloadRekapMudawamahExcel()" class="text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-2.5 py-1.5 rounded-xl shadow-xs transition flex items-center gap-1">
+                <span>📊</span> <span>Excel</span>
+              </button>
+              <button type="button" onclick="downloadRekapMudawamahPDF()" class="text-[10px] bg-rose-600 hover:bg-rose-700 text-white font-extrabold px-2.5 py-1.5 rounded-xl shadow-xs transition flex items-center gap-1">
+                <span>📄</span> <span>PDF</span>
+              </button>
+              <button type="button" onclick="loadSimRekapMudawamah(true)" class="text-[10px] bg-teal-50 hover:bg-teal-100 text-teal-700 font-extrabold px-2.5 py-1.5 rounded-xl border border-teal-200 transition flex items-center gap-1">
+                <span>🔄</span> <span>Refresh</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter Periode: Per Bulan, Per Tahun, Sepanjang Masa -->
+          <div class="bg-slate-50 border border-slate-200/80 p-3 rounded-2xl space-y-2.5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Filter Periode Waktu:</span>
+              <div class="flex bg-slate-200/80 p-0.5 rounded-xl text-[10px] font-bold">
+                <button type="button" onclick="setSimRankPeriod('monthly')" id="btn-sim-rank-period-monthly" class="px-2.5 py-1 rounded-lg bg-white text-teal-800 shadow-xs font-extrabold transition">Per Bulan</button>
+                <button type="button" onclick="setSimRankPeriod('yearly')" id="btn-sim-rank-period-yearly" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition">Per Tahun</button>
+                <button type="button" onclick="setSimRankPeriod('lifetime')" id="btn-sim-rank-period-lifetime" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition">Sepanjang Masa</button>
+              </div>
+            </div>
+
+            <!-- Pemilih Bulan / Tahun Dinamis -->
+            <div id="sim-rank-date-selectors" class="flex flex-wrap items-center gap-2 pt-0.5">
+              <div id="sim-rank-month-picker-wrap" class="flex-1 min-w-[140px]">
+                <label class="text-[9px] text-slate-500 font-bold block mb-0.5">Pilih Bulan</label>
+                <input type="month" id="sim-rank-month-input" onchange="renderSimRekapMudawamah()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-teal-600">
+              </div>
+              <div id="sim-rank-year-picker-wrap" class="hidden flex-1 min-w-[140px]">
+                <label class="text-[9px] text-slate-500 font-bold block mb-0.5">Pilih Tahun</label>
+                <select id="sim-rank-year-select" onchange="renderSimRekapMudawamah()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-teal-600"></select>
+              </div>
+              <div class="flex-1 min-w-[175px]">
+                <label class="text-[9px] text-slate-500 font-bold block mb-0.5">Urutkan Peringkat Berdasarkan</label>
+                <select id="sim-rank-type-select" onchange="renderSimRekapMudawamah()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-extrabold text-teal-800 focus:outline-none focus:border-teal-600">
+                  <option value="total_all">🔥 Total Keseluruhan Aktivitas (Effort)</option>
+                  <option value="mutqin">👑 Juz Mutqin Terbanyak</option>
+                  <option value="ziyadah">⚡ Ziyadah Teraktif</option>
+                  <option value="ulang7">🔁 Ulang 7 Hari Teraktif</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ringkasan Total Global Periode Terpilih -->
+          <div class="grid grid-cols-4 gap-1.5 text-center">
+            <div class="bg-gradient-to-br from-teal-700 to-teal-800 text-white p-2.5 rounded-2xl shadow-xs">
+              <p class="text-[9px] text-teal-100 font-bold uppercase">Total Effort</p>
+              <p id="sim-muda-sum-total" class="text-xs sm:text-sm font-black mt-0.5">0x</p>
+              <p id="sim-muda-sum-total-pages" class="text-[8px] text-teal-200 font-mono">0 Hal</p>
+            </div>
+            <div class="bg-teal-50/80 border border-teal-100 p-2.5 rounded-2xl">
+              <p class="text-[9px] text-teal-800 font-bold uppercase">Ziyadah</p>
+              <p id="sim-muda-sum-ziyadah" class="text-xs sm:text-sm font-extrabold text-teal-700 mt-0.5">0x</p>
+              <p id="sim-muda-sum-ziyadah-pages" class="text-[8px] text-slate-500 font-mono">0 Hal</p>
+            </div>
+            <div class="bg-indigo-50/80 border border-indigo-100 p-2.5 rounded-2xl">
+              <p class="text-[9px] text-indigo-800 font-bold uppercase">Ulang 7H</p>
+              <p id="sim-muda-sum-ulang" class="text-xs sm:text-sm font-extrabold text-indigo-700 mt-0.5">0x</p>
+              <p id="sim-muda-sum-ulang-pages" class="text-[8px] text-slate-500 font-mono">0 Hal</p>
+            </div>
+            <div class="bg-amber-50/80 border border-amber-100 p-2.5 rounded-2xl">
+              <p class="text-[9px] text-amber-800 font-bold uppercase">Mutqin</p>
+              <p id="sim-muda-sum-mutqin" class="text-xs sm:text-sm font-extrabold text-amber-700 mt-0.5">0x</p>
+              <p id="sim-muda-sum-mutqin-pages" class="text-[8px] text-slate-500 font-mono">0 Hal</p>
+            </div>
+          </div>
+
+          <!-- Kolom Pencarian Nama Peserta -->
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
+            <input id="search-sim-rank-input" type="text" oninput="renderSimRekapMudawamah()" placeholder="Cari nama santri atau ustadz..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-8 pr-4 py-2 text-xs text-slate-800 font-semibold focus:outline-none focus:border-teal-600 focus:bg-white transition">
+          </div>
+
+          <!-- Daftar Ranking Mudawamah -->
+          <div id="sim-rekap-mudawamah-list" class="space-y-2.5 max-h-[30rem] overflow-y-auto pr-1">
+            <p class="text-xs text-slate-400 italic text-center py-6">Memuat data rekap & ranking mudawamah...</p>
           </div>
         </div>
       </section>
@@ -1712,15 +1815,27 @@
         </div>
 
         <div id="admin-sub-leaderboard" class="hidden space-y-3">
-          <div class="flex justify-between items-center">
-            <h4 class="text-[11px] font-bold text-slate-700">Peringkat Prestasi Santri</h4>
-            <select id="admin-rank-type" onchange="renderAdminLeaderboard()" class="bg-slate-50 border border-slate-200 rounded-lg text-[10px] px-2 py-1 text-teal-700 font-bold focus:outline-none">
-              <option value="mutqin">👑 Juz Mutqin Terbanyak</option>
-              <option value="ziyadah">⚡ Ziyadah Teraktif</option>
-              <option value="ulang7">🔁 Ulang 7 Hari Teraktif</option>
-            </select>
+          <div class="bg-slate-50 p-2.5 rounded-2xl border border-slate-200/80 space-y-2">
+            <div class="flex flex-wrap justify-between items-center gap-1.5">
+              <h4 class="text-[11px] font-bold text-slate-700">🏆 Peringkat Mudawamah</h4>
+              <div class="flex bg-slate-200/80 p-0.5 rounded-lg text-[9px] font-bold">
+                <button type="button" onclick="setAdminRankPeriod('monthly')" id="btn-adm-rank-period-monthly" class="px-2 py-0.5 rounded-md bg-white text-teal-800 shadow-2xs font-extrabold">Per Bulan</button>
+                <button type="button" onclick="setAdminRankPeriod('yearly')" id="btn-adm-rank-period-yearly" class="px-2 py-0.5 rounded-md text-slate-600">Per Tahun</button>
+                <button type="button" onclick="setAdminRankPeriod('lifetime')" id="btn-adm-rank-period-lifetime" class="px-2 py-0.5 rounded-md text-slate-600">Sepanjang Masa</button>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <input type="month" id="adm-rank-month-input" onchange="renderAdminLeaderboard()" class="bg-white border border-slate-200 rounded-lg px-2 py-1 text-[10px] font-bold text-slate-700 focus:outline-none">
+              <select id="adm-rank-year-select" onchange="renderAdminLeaderboard()" class="hidden bg-white border border-slate-200 rounded-lg px-2 py-1 text-[10px] font-bold text-slate-700 focus:outline-none"></select>
+              <select id="admin-rank-type" onchange="renderAdminLeaderboard()" class="flex-1 bg-white border border-slate-200 rounded-lg text-[10px] px-2 py-1 text-teal-700 font-bold focus:outline-none">
+                <option value="total_all">🔥 Total Keseluruhan Aktivitas</option>
+                <option value="mutqin">👑 Juz Mutqin Terbanyak</option>
+                <option value="ziyadah">⚡ Ziyadah Teraktif</option>
+                <option value="ulang7">🔁 Ulang 7 Hari Teraktif</option>
+              </select>
+            </div>
           </div>
-          <div id="admin-leaderboard-list" class="space-y-2 max-h-64 overflow-y-auto pr-1"></div>
+          <div id="admin-leaderboard-list" class="space-y-2 max-h-72 overflow-y-auto pr-1"></div>
         </div>
 
         <div id="admin-sub-announcement" class="hidden space-y-3.5">
@@ -2364,7 +2479,7 @@
       const target = document.getElementById(tabId);
       if (target) target.classList.remove('hidden');
 
-      ['halaqah', 'talim', 'absensi', 'santri', 'pengampu', 'keuangan'].forEach(t => {
+      ['halaqah', 'talim', 'absensi', 'rekap-mudawamah', 'santri', 'pengampu', 'keuangan'].forEach(t => {
         const btn = document.getElementById(`btn-tab-${t}`);
         if (btn) {
           if (t === 'pengampu' && !canViewUstadzMenu()) {
@@ -2379,6 +2494,7 @@
 
       if (tabId === 'tab-halaqah') renderHalaqahCategoryTabs();
       if (tabId === 'tab-absensi') loadAttendanceRecap();
+      if (tabId === 'tab-rekap-mudawamah') loadSimRekapMudawamah(false);
       if (tabId === 'tab-santri') renderStudentsTable();
       if (tabId === 'tab-pengampu') loadUstadzList();
       if (tabId === 'tab-keuangan') loadFinanceRecords();
@@ -2651,10 +2767,13 @@
       const selHalaqah = document.getElementById('halaqah-student-select');
       const prevSelected = selHalaqah?.value || "";
       if (selHalaqah) {
-        selHalaqah.innerHTML = `<option value="">-- Pilih Santri (${selectedHalaqahCategoryTab}) --</option>` +
+        selHalaqah.innerHTML = `<option value="">-- Pilih Santri (${selectedHalaqahCategoryTab} • ${dropdownFiltered.length}) --</option>` +
           dropdownFiltered.map(s => `<option value="${s.id}">${s.full_name} (${s.status.toUpperCase()})</option>`).join('');
         if (dropdownFiltered.some(s => s.id === prevSelected)) {
           selHalaqah.value = prevSelected;
+        } else if (searchHalaqahQuery && dropdownFiltered.length === 1) {
+          selHalaqah.value = dropdownFiltered[0].id;
+          onSelectHalaqahStudent(dropdownFiltered[0].id);
         }
       }
 
@@ -8509,6 +8628,7 @@ Data yang dihapus tidak dapat dikembalikan.`);
         .reduce((sum, item) => sum + parseFloat(item.portion_value), 0);
       document.getElementById('admin-total-pages-global').innerText = `${Math.round(totalGlobalPages)} Hal`;
 
+      initRankPeriodPickers();
       renderAdminPendingApproval();
       renderAdminLeaderboard();
       await loadAnnouncementSettings();
@@ -8556,12 +8676,119 @@ Data yang dihapus tidak dapat dikembalikan.`);
       await loadAdminData();
     }
 
-    function getAdminLeaderboardData() {
-      // Hanya sertakan Ustadz/Pengampu (bukan role 'wali' dan bukan role 'santri' non-Mahir)
+    let activeAdminRankPeriod = 'monthly';
+    let activeSimRankPeriod = 'monthly';
+
+    function initRankPeriodPickers() {
+      const now = new Date();
+      const curMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      const curYear = String(now.getFullYear());
+
+      const admMonthInp = document.getElementById('adm-rank-month-input');
+      if (admMonthInp && !admMonthInp.value) admMonthInp.value = curMonth;
+
+      const simMonthInp = document.getElementById('sim-rank-month-input');
+      if (simMonthInp && !simMonthInp.value) simMonthInp.value = curMonth;
+
+      const yearsSet = new Set([now.getFullYear()]);
+      (allGlobalLogs || []).forEach(l => {
+        if (l.created_at) {
+          const y = new Date(l.created_at).getFullYear();
+          if (!isNaN(y)) yearsSet.add(y);
+        }
+      });
+      const sortedYears = Array.from(yearsSet).sort((a, b) => b - a);
+      const yearOptionsHtml = sortedYears.map(y => `<option value="${y}" ${String(y) === curYear ? 'selected' : ''}>Tahun ${y}</option>`).join('');
+
+      const admYearSel = document.getElementById('adm-rank-year-select');
+      if (admYearSel) admYearSel.innerHTML = yearOptionsHtml;
+
+      const simYearSel = document.getElementById('sim-rank-year-select');
+      if (simYearSel) simYearSel.innerHTML = yearOptionsHtml;
+    }
+
+    function setAdminRankPeriod(period) {
+      activeAdminRankPeriod = period;
+      ['monthly', 'yearly', 'lifetime'].forEach(p => {
+        const btn = document.getElementById(`btn-adm-rank-period-${p}`);
+        if (btn) {
+          btn.className = (p === period)
+            ? "px-2 py-0.5 rounded-md bg-white text-teal-800 shadow-2xs font-extrabold"
+            : "px-2 py-0.5 rounded-md text-slate-600";
+        }
+      });
+
+      const mInp = document.getElementById('adm-rank-month-input');
+      const ySel = document.getElementById('adm-rank-year-select');
+      if (period === 'monthly') {
+        mInp?.classList.remove('hidden');
+        ySel?.classList.add('hidden');
+      } else if (period === 'yearly') {
+        mInp?.classList.add('hidden');
+        ySel?.classList.remove('hidden');
+      } else {
+        mInp?.classList.add('hidden');
+        ySel?.classList.add('hidden');
+      }
+      renderAdminLeaderboard();
+    }
+
+    function setSimRankPeriod(period) {
+      activeSimRankPeriod = period;
+      ['monthly', 'yearly', 'lifetime'].forEach(p => {
+        const btn = document.getElementById(`btn-sim-rank-period-${p}`);
+        if (btn) {
+          btn.className = (p === period)
+            ? "px-2.5 py-1 rounded-lg bg-white text-teal-800 shadow-xs font-extrabold transition"
+            : "px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition";
+        }
+      });
+
+      const mWrap = document.getElementById('sim-rank-month-picker-wrap');
+      const yWrap = document.getElementById('sim-rank-year-picker-wrap');
+      if (period === 'monthly') {
+        mWrap?.classList.remove('hidden');
+        yWrap?.classList.add('hidden');
+      } else if (period === 'yearly') {
+        mWrap?.classList.add('hidden');
+        yWrap?.classList.remove('hidden');
+      } else {
+        mWrap?.classList.add('hidden');
+        yWrap?.classList.add('hidden');
+      }
+      renderSimRekapMudawamah();
+    }
+
+    function filterLogsByRankPeriod(logs, periodMode, monthValue, yearValue) {
+      if (!logs || logs.length === 0) return [];
+      if (periodMode === 'lifetime') return logs;
+
+      if (periodMode === 'monthly' && monthValue) {
+        return logs.filter(l => {
+          if (!l.created_at) return false;
+          const d = new Date(l.created_at);
+          if (isNaN(d.getTime())) return false;
+          const mKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          return mKey === monthValue;
+        });
+      }
+
+      if (periodMode === 'yearly' && yearValue) {
+        return logs.filter(l => {
+          if (!l.created_at) return false;
+          const d = new Date(l.created_at);
+          if (isNaN(d.getTime())) return false;
+          return String(d.getFullYear()) === String(yearValue);
+        });
+      }
+
+      return logs;
+    }
+
+    function getAdminLeaderboardData(periodMode = 'lifetime', monthValue = '', yearValue = '') {
       const ustadzRoles = ['muhafizh', 'super_admin', 'bendahara', 'kepala_pontren', 'admin'];
       const mahirStudents = (studentsList || []).filter(s => normalizeStudentCategory(s.category) === 'Mahir (Tahfizh)');
 
-      // Kumpulan email/identitas santri kategori Mahir
       const mahirStudentEmails = new Set();
       mahirStudents.forEach(s => {
         if (s.student_email) {
@@ -8569,6 +8796,45 @@ Data yang dihapus tidak dapat dikembalikan.`);
           mahirStudentEmails.add(normalizeAuthIdentifier(s.student_email).toLowerCase());
         }
       });
+
+      const periodFilteredGlobalLogs = filterLogsByRankPeriod(allGlobalLogs || [], periodMode, monthValue, yearValue);
+
+      function computeParticipantMetrics(logs) {
+        const ziyadahLogs = logs.filter(l => l.pillar === 'Ziyadah');
+        const ulang7Logs = logs.filter(l => l.pillar === 'Ulang 7 Hari');
+        const mutqinLogs = logs.filter(l => l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin');
+
+        const mutqinSet = new Set(mutqinLogs.filter(l => l.juz).map(l => l.juz));
+        const ziyadahCount = ziyadahLogs.length;
+        const ulang7Count = ulang7Logs.length;
+        const mutqinCount = mutqinLogs.length;
+
+        // Effort halaman (Ziyadah = portion_value * repetition_count; Ulang 7 Hari = 20 hal/setor; Mutqin = 20 hal/setor)
+        const ziyadahEffortPages = ziyadahLogs.reduce((sum, i) => {
+          const portion = parseFloat(i.portion_value || 1.0) || 0;
+          const rep = parseInt(i.repetition_count || 1, 10) || 1;
+          return sum + (portion * rep);
+        }, 0);
+        const ulang7Pages = ulang7Count * 20;
+        const mutqinPages = mutqinCount * 20;
+
+        // Total Keseluruhan Aktivitas = jumlah seluruh aktivitas (Ziyadah + Ulang 7 Hari + Mutqin)
+        const totalActivitiesCount = ziyadahCount + ulang7Count + mutqinCount;
+        const totalEffortPages = parseFloat((ziyadahEffortPages + ulang7Pages + mutqinPages).toFixed(1));
+
+        return {
+          mutqinJuz: mutqinSet.size,
+          mutqinCount: mutqinCount,
+          ziyadahCount: ziyadahCount,
+          ulang7Count: ulang7Count,
+          totalActivitiesCount: totalActivitiesCount,
+          ziyadahPages: parseFloat(ziyadahEffortPages.toFixed(1)),
+          ulang7Pages: ulang7Pages,
+          mutqinPages: mutqinPages,
+          totalPages: totalEffortPages,
+          totalSetoran: totalActivitiesCount
+        };
+      }
 
       const entries = [];
       const coveredMahirStudentIds = new Set();
@@ -8579,7 +8845,6 @@ Data yang dihapus tidak dapat dikembalikan.`);
         const uEmail = (user.email || '').toLowerCase().trim();
         const uEmailNorm = normalizeAuthIdentifier(uEmail).toLowerCase();
 
-        // Abaikan Wali Santri agar tidak masuk ranking
         if (uRole === 'wali' && !mahirStudentEmails.has(uEmail) && !mahirStudentEmails.has(uEmailNorm)) {
           return;
         }
@@ -8592,116 +8857,372 @@ Data yang dihapus tidak dapat dikembalikan.`);
 
         const isUstadz = ustadzRoles.includes(uRole) || uEmail === ADMIN_EMAIL.toLowerCase();
         if (!isUstadz && !matchedMahirSt) {
-          return; // Skip santri non-Mahir atau akun umum lainnya
+          return;
         }
 
         if (matchedMahirSt) {
           coveredMahirStudentIds.add(matchedMahirSt.id);
         }
 
-        const logs = allGlobalLogs.filter(l => {
+        const logs = periodFilteredGlobalLogs.filter(l => {
           if (matchedMahirSt) {
             return l.student_id === matchedMahirSt.id || l.user_id === user.id;
           }
           return l.user_id === user.id && !l.student_id;
         });
 
-        const mutqinSet = new Set(logs.filter(l => l.juz && (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin')).map(l => l.juz));
-        const ziyadahCount = logs.filter(l => l.pillar === 'Ziyadah').length;
-        const ulang7Count = logs.filter(l => l.pillar === 'Ulang 7 Hari').length;
-        const totalZiyadahPages = logs.filter(l => l.pillar === 'Ziyadah' && l.portion_value).reduce((s, i) => s + parseFloat(i.portion_value), 0);
-        const totalMutqinPages = mutqinSet.size * 20;
+        const metrics = computeParticipantMetrics(logs);
 
         entries.push({
           id: user.id,
+          studentId: matchedMahirSt ? matchedMahirSt.id : null,
           name: matchedMahirSt ? matchedMahirSt.full_name : user.full_name,
           email: formatDisplayIdentifier(user.email),
           roleLabel: matchedMahirSt ? 'Santri Mahir' : 'Ustadz / Pengampu',
-          mutqinJuz: mutqinSet.size,
-          ziyadahCount: ziyadahCount,
-          ulang7Count: ulang7Count,
-          ziyadahPages: totalZiyadahPages,
-          mutqinPages: totalMutqinPages,
-          totalPages: totalMutqinPages + totalZiyadahPages,
-          totalSetoran: logs.length
+          ...metrics
         });
       });
 
-      // 2. Tambahkan Santri Kategori Mahir yang belum pernah login mandiri tapi sudah punya log setoran Mudawamah dari Ustadz
+      // 2. Tambahkan Santri Kategori Mahir yang belum pernah login mandiri tapi terdaftar
       mahirStudents.forEach(s => {
         if (coveredMahirStudentIds.has(s.id)) return;
-        const logs = allGlobalLogs.filter(l => l.student_id === s.id);
-        const mutqinSet = new Set(logs.filter(l => l.juz && (l.pillar === 'Mutqin' || l.pillar === 'Hafizh Mutqin')).map(l => l.juz));
-        const ziyadahCount = logs.filter(l => l.pillar === 'Ziyadah').length;
-        const ulang7Count = logs.filter(l => l.pillar === 'Ulang 7 Hari').length;
-        const totalZiyadahPages = logs.filter(l => l.pillar === 'Ziyadah' && l.portion_value).reduce((sum, i) => sum + parseFloat(i.portion_value), 0);
-        const totalMutqinPages = mutqinSet.size * 20;
+        const logs = periodFilteredGlobalLogs.filter(l => l.student_id === s.id);
+        const metrics = computeParticipantMetrics(logs);
 
         entries.push({
           id: s.id,
+          studentId: s.id,
           name: s.full_name,
           email: s.student_email ? formatDisplayIdentifier(s.student_email) : (s.nis ? 'NIS: ' + s.nis : 'Santri Mahir'),
           roleLabel: 'Santri Mahir',
-          mutqinJuz: mutqinSet.size,
-          ziyadahCount: ziyadahCount,
-          ulang7Count: ulang7Count,
-          ziyadahPages: totalZiyadahPages,
-          mutqinPages: totalMutqinPages,
-          totalPages: totalMutqinPages + totalZiyadahPages,
-          totalSetoran: logs.length
+          ...metrics
         });
       });
 
       return entries;
     }
 
+    function sortLeaderboardEntries(dataList, sortType) {
+      const list = [...dataList];
+      if (sortType === 'total_all') {
+        list.sort((a, b) => b.totalActivitiesCount - a.totalActivitiesCount || b.totalPages - a.totalPages);
+      } else if (sortType === 'mutqin') {
+        list.sort((a, b) => b.mutqinJuz - a.mutqinJuz || b.mutqinCount - a.mutqinCount || b.totalPages - a.totalPages);
+      } else if (sortType === 'ziyadah') {
+        list.sort((a, b) => b.ziyadahCount - a.ziyadahCount || b.ziyadahPages - a.ziyadahPages);
+      } else if (sortType === 'ulang7') {
+        list.sort((a, b) => b.ulang7Count - a.ulang7Count || b.ulang7Pages - a.ulang7Pages);
+      }
+      return list;
+    }
+
     function renderAdminLeaderboard() {
       const container = document.getElementById('admin-leaderboard-list');
+      if (!container) return;
       container.innerHTML = '';
-      const type = document.getElementById('admin-rank-type').value;
 
-      const leaderboardData = getAdminLeaderboardData();
+      const type = document.getElementById('admin-rank-type')?.value || 'total_all';
+      const monthVal = document.getElementById('adm-rank-month-input')?.value || '';
+      const yearVal = document.getElementById('adm-rank-year-select')?.value || '';
 
-      if (type === 'mutqin') {
-        leaderboardData.sort((a, b) => b.mutqinJuz - a.mutqinJuz || b.totalPages - a.totalPages);
-      } else if (type === 'ziyadah') {
-        leaderboardData.sort((a, b) => b.ziyadahCount - a.ziyadahCount || b.totalPages - a.totalPages);
-      } else if (type === 'ulang7') {
-        leaderboardData.sort((a, b) => b.ulang7Count - a.ulang7Count || b.totalPages - a.totalPages);
+      const rawList = getAdminLeaderboardData(activeAdminRankPeriod, monthVal, yearVal);
+      const leaderboardData = sortLeaderboardEntries(rawList, type);
+
+      if (leaderboardData.length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-4">Belum ada data peserta pada periode ini.</p>';
+        return;
       }
 
       leaderboardData.forEach((santri, index) => {
         const item = document.createElement('div');
-        item.className = 'bg-slate-50 p-3 rounded-2xl border border-slate-100 flex justify-between items-center text-xs';
+        item.className = 'bg-slate-50 p-3 rounded-2xl border border-slate-100 space-y-1.5 text-xs';
         let rankBadge = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : `#${index + 1}`));
         let metricText = '';
 
-        if (type === 'mutqin') metricText = `<span class="text-teal-700 font-bold">${santri.mutqinJuz} Juz Mutqin</span>`;
-        else if (type === 'ziyadah') metricText = `<span class="text-teal-700 font-bold">${santri.ziyadahCount}x Ziyadah</span>`;
-        else metricText = `<span class="text-indigo-600 font-bold">${santri.ulang7Count}x Ulang 7 Hari</span>`;
+        if (type === 'total_all') {
+          metricText = `<span class="text-teal-800 font-black">${santri.totalActivitiesCount}x Total Aktivitas</span>`;
+        } else if (type === 'mutqin') {
+          metricText = `<span class="text-amber-700 font-extrabold">${santri.mutqinJuz} Juz Mutqin (${santri.mutqinCount}x)</span>`;
+        } else if (type === 'ziyadah') {
+          metricText = `<span class="text-teal-700 font-extrabold">${santri.ziyadahCount}x Ziyadah</span>`;
+        } else {
+          metricText = `<span class="text-indigo-600 font-extrabold">${santri.ulang7Count}x Ulang 7 Hari</span>`;
+        }
 
         const roleBadgeHtml = santri.roleLabel === 'Santri Mahir'
           ? '<span class="text-[8px] bg-emerald-50 text-emerald-700 border border-emerald-200 font-extrabold px-1.5 py-0.5 rounded-full">Santri Mahir</span>'
           : '<span class="text-[8px] bg-amber-50 text-amber-800 border border-amber-200 font-extrabold px-1.5 py-0.5 rounded-full">Ustadz</span>';
 
         item.innerHTML = `
-          <div class="flex items-center gap-2.5">
-            <span class="text-sm font-bold w-5 text-center">${rankBadge}</span>
-            <div>
-              <div class="flex flex-wrap items-center gap-1.5">
-                <p class="font-bold text-slate-800">${santri.name}</p>
-                ${roleBadgeHtml}
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2.5">
+              <span class="text-sm font-bold w-5 text-center">${rankBadge}</span>
+              <div>
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <p class="font-bold text-slate-800">${santri.name}</p>
+                  ${roleBadgeHtml}
+                </div>
+                <p class="text-[10px] text-slate-400 font-mono">${santri.email}</p>
               </div>
-              <p class="text-[10px] text-slate-400 font-mono">${santri.email}</p>
+            </div>
+            <div class="text-right">
+              <div>${metricText}</div>
+              <p class="text-[9px] text-slate-500 font-mono font-semibold">Total Beban: ${santri.totalPages} Hal</p>
             </div>
           </div>
-          <div class="text-right">
-            <div>${metricText}</div>
-            <p class="text-[9px] text-slate-400 font-medium">${santri.mutqinPages} Hal Mutqin</p>
+          <div class="grid grid-cols-3 gap-1 pt-1.5 border-t border-slate-200/70 text-[9px] text-center font-semibold">
+            <span class="bg-white rounded-md py-0.5 border border-slate-200/70 text-teal-800">🌱 Ziyadah: <b>${santri.ziyadahCount}x</b></span>
+            <span class="bg-white rounded-md py-0.5 border border-slate-200/70 text-indigo-700">🔁 Ulang 7H: <b>${santri.ulang7Count}x</b></span>
+            <span class="bg-white rounded-md py-0.5 border border-slate-200/70 text-amber-800">👑 Mutqin: <b>${santri.mutqinCount}x</b> (${santri.mutqinJuz} Juz)</span>
           </div>
         `;
         container.appendChild(item);
       });
+    }
+
+    // ================= TAB REKAP MUDAWAMAH DI SIM =================
+    let simRekapMudawamahExportCache = [];
+
+    async function loadSimRekapMudawamah(forceRefresh = false) {
+      const listEl = document.getElementById('sim-rekap-mudawamah-list');
+      if (listEl && (forceRefresh || !allGlobalLogs || allGlobalLogs.length === 0)) {
+        listEl.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-6">Memuat data rekap & ranking mudawamah...</p>';
+      }
+
+      if (forceRefresh || !allUsersData || allUsersData.length === 0) {
+        const { data: users } = await sb.from('profiles').select('*');
+        if (users) allUsersData = users;
+      }
+
+      if (forceRefresh || !allGlobalLogs || allGlobalLogs.length === 0) {
+        const { data: logs } = await sb.from('mudawamah_logs').select('*');
+        if (logs) allGlobalLogs = logs;
+      }
+
+      initRankPeriodPickers();
+      renderSimRekapMudawamah();
+    }
+
+    function renderSimRekapMudawamah() {
+      const container = document.getElementById('sim-rekap-mudawamah-list');
+      const subtitleEl = document.getElementById('sim-rank-period-subtitle');
+      if (!container) return;
+
+      const sortType = document.getElementById('sim-rank-type-select')?.value || 'total_all';
+      const monthVal = document.getElementById('sim-rank-month-input')?.value || '';
+      const yearVal = document.getElementById('sim-rank-year-select')?.value || '';
+      const searchKw = (document.getElementById('search-sim-rank-input')?.value || '').trim().toLowerCase();
+
+      if (subtitleEl) {
+        if (activeSimRankPeriod === 'monthly') {
+          subtitleEl.innerText = `Periode Bulan: ${formatMonthLabel(monthVal)} • Ranking Total Effort & Konsistensi`;
+        } else if (activeSimRankPeriod === 'yearly') {
+          subtitleEl.innerText = `Periode Tahun: ${yearVal} • Ranking Total Effort & Konsistensi`;
+        } else {
+          subtitleEl.innerText = `Periode: Sepanjang Masa (Seluruh Riwayat) • Ranking Total Effort`;
+        }
+      }
+
+      const rawData = getAdminLeaderboardData(activeSimRankPeriod, monthVal, yearVal);
+      let sortedList = sortLeaderboardEntries(rawData, sortType);
+
+      if (searchKw) {
+        sortedList = sortedList.filter(x =>
+          (x.name || '').toLowerCase().includes(searchKw) ||
+          (x.email || '').toLowerCase().includes(searchKw) ||
+          (x.roleLabel || '').toLowerCase().includes(searchKw)
+        );
+      }
+
+      simRekapMudawamahExportCache = sortedList;
+
+      // Hitung agregat ringkasan global periode terpilih
+      let sumTotalAct = 0, sumTotalPages = 0;
+      let sumZiyadah = 0, sumZiyadahPages = 0;
+      let sumUlang = 0, sumUlangPages = 0;
+      let sumMutqin = 0, sumMutqinPages = 0;
+
+      sortedList.forEach(item => {
+        sumTotalAct += item.totalActivitiesCount;
+        sumTotalPages += item.totalPages;
+        sumZiyadah += item.ziyadahCount;
+        sumZiyadahPages += item.ziyadahPages;
+        sumUlang += item.ulang7Count;
+        sumUlangPages += item.ulang7Pages;
+        sumMutqin += item.mutqinCount;
+        sumMutqinPages += item.mutqinPages;
+      });
+
+      document.getElementById('sim-muda-sum-total').innerText = `${sumTotalAct}x`;
+      document.getElementById('sim-muda-sum-total-pages').innerText = `${Math.round(sumTotalPages)} Hal`;
+      document.getElementById('sim-muda-sum-ziyadah').innerText = `${sumZiyadah}x`;
+      document.getElementById('sim-muda-sum-ziyadah-pages').innerText = `${Math.round(sumZiyadahPages)} Hal`;
+      document.getElementById('sim-muda-sum-ulang').innerText = `${sumUlang}x`;
+      document.getElementById('sim-muda-sum-ulang-pages').innerText = `${Math.round(sumUlangPages)} Hal`;
+      document.getElementById('sim-muda-sum-mutqin').innerText = `${sumMutqin}x`;
+      document.getElementById('sim-muda-sum-mutqin-pages').innerText = `${Math.round(sumMutqinPages)} Hal`;
+
+      if (sortedList.length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-6">Tidak ada data aktivitas Mudawamah yang sesuai filter.</p>';
+        return;
+      }
+
+      container.innerHTML = sortedList.map((item, idx) => {
+        const rankBadge = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `#${idx + 1}`));
+        const cardHighlight = idx === 0
+          ? 'bg-gradient-to-r from-amber-50/80 via-white to-teal-50/50 border-amber-300'
+          : (idx === 1 ? 'bg-slate-50/90 border-slate-300' : 'bg-slate-50/70 border-slate-200/80');
+
+        const roleBadge = item.roleLabel === 'Santri Mahir'
+          ? '<span class="text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-200 font-extrabold px-2 py-0.5 rounded-full">Santri Mahir</span>'
+          : '<span class="text-[9px] bg-amber-50 text-amber-800 border border-amber-200 font-extrabold px-2 py-0.5 rounded-full">Ustadz</span>';
+
+        const pantauBtn = item.studentId
+          ? `<button type="button" onclick="viewStudentActivity('${item.studentId}')" class="text-[9px] font-bold text-teal-700 bg-white hover:bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-lg transition">👁️ Rapor</button>`
+          : '';
+
+        return `
+          <div class="p-3 rounded-2xl border ${cardHighlight} space-y-2 text-xs shadow-2xs">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-black text-xs shrink-0">
+                  ${rankBadge}
+                </div>
+                <div>
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <p class="font-extrabold text-slate-800">${item.name}</p>
+                    ${roleBadge}
+                    ${pantauBtn}
+                  </div>
+                  <p class="text-[10px] text-slate-400 font-mono mt-0.5">${item.email}</p>
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="inline-block bg-teal-700 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-2xs">
+                  🔥 ${item.totalActivitiesCount}x Aktivitas
+                </span>
+                <p class="text-[10px] text-slate-600 font-mono font-bold mt-0.5">Total Effort: ${item.totalPages} Hal</p>
+              </div>
+            </div>
+
+            <!-- Rincian 3 Pilar: Ziyadah + Ulang 7 Hari + Mutqin -->
+            <div class="grid grid-cols-3 gap-1.5 pt-1.5 border-t border-slate-200/70 text-[10px]">
+              <div class="bg-white p-1.5 rounded-xl border border-teal-100 text-center">
+                <span class="block text-[9px] text-slate-400 font-bold">🌱 Ziyadah</span>
+                <span class="font-extrabold text-teal-700">${item.ziyadahCount}x</span>
+                <span class="block text-[8px] text-slate-500 font-mono">${item.ziyadahPages} Hal</span>
+              </div>
+              <div class="bg-white p-1.5 rounded-xl border border-indigo-100 text-center">
+                <span class="block text-[9px] text-slate-400 font-bold">🔁 Ulang 7 Hari</span>
+                <span class="font-extrabold text-indigo-700">${item.ulang7Count}x</span>
+                <span class="block text-[8px] text-slate-500 font-mono">${item.ulang7Pages} Hal</span>
+              </div>
+              <div class="bg-white p-1.5 rounded-xl border border-amber-100 text-center">
+                <span class="block text-[9px] text-slate-400 font-bold">👑 Mutqin</span>
+                <span class="font-extrabold text-amber-700">${item.mutqinCount}x (${item.mutqinJuz} Juz)</span>
+                <span class="block text-[8px] text-slate-500 font-mono">${item.mutqinPages} Hal</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function downloadRekapMudawamahExcel() {
+      if (!simRekapMudawamahExportCache || simRekapMudawamahExportCache.length === 0) {
+        return showToast("Belum ada data rekap mudawamah untuk diunduh", true);
+      }
+      if (typeof XLSX === 'undefined') {
+        return showToast("Library Excel sedang dimuat, silakan coba beberapa detik lagi", true);
+      }
+
+      const subtitleText = document.getElementById('sim-rank-period-subtitle')?.innerText || 'Rekap Mudawamah';
+      const rows = [
+        ["REKAP & RANKING TRACKER MUDAWAMAH - PONTREN IZHHARUL HAQ"],
+        [subtitleText],
+        ["Tanggal Cetak:", new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })],
+        [],
+        ["Peringkat", "Nama Peserta", "Status", "Kontak / NIS", "Ziyadah (Kali)", "Ziyadah Effort (Hal)", "Ulang 7 Hari (Kali)", "Ulang 7H (Hal)", "Mutqin (Kali)", "Juz Mutqin Unik", "Mutqin (Hal)", "Total Keseluruhan Aktivitas (Kali)", "Total Effort Keseluruhan (Hal)"]
+      ];
+
+      simRekapMudawamahExportCache.forEach((item, idx) => {
+        rows.push([
+          idx + 1,
+          item.name,
+          item.roleLabel,
+          item.email,
+          item.ziyadahCount,
+          item.ziyadahPages,
+          item.ulang7Count,
+          item.ulang7Pages,
+          item.mutqinCount,
+          item.mutqinJuz,
+          item.mutqinPages,
+          item.totalActivitiesCount,
+          item.totalPages
+        ]);
+      });
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols'] = [
+        { wch: 10 }, { wch: 26 }, { wch: 18 }, { wch: 24 },
+        { wch: 14 }, { wch: 18 }, { wch: 16 }, { wch: 14 },
+        { wch: 14 }, { wch: 16 }, { wch: 14 }, { wch: 26 }, { wch: 24 }
+      ];
+      XLSX.utils.book_append_sheet(wb, ws, "Rekap Mudawamah");
+
+      const dateStamp = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(wb, `Rekap_Mudawamah_Pontren_${dateStamp}.xlsx`);
+      showToast("File Excel Rekap Mudawamah berhasil diunduh!");
+    }
+
+    function downloadRekapMudawamahPDF() {
+      if (!simRekapMudawamahExportCache || simRekapMudawamahExportCache.length === 0) {
+        return showToast("Belum ada data rekap mudawamah untuk diunduh", true);
+      }
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        return showToast("Library PDF sedang dimuat, silakan coba beberapa detik lagi", true);
+      }
+
+      const subtitleText = document.getElementById('sim-rank-period-subtitle')?.innerText || 'Rekap Mudawamah';
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('p', 'mm', 'a4');
+
+      doc.setFontSize(13);
+      doc.setTextColor(15, 118, 110);
+      doc.text("REKAP & RANKING TRACKER MUDAWAMAH", 14, 15);
+
+      doc.setFontSize(8.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text(subtitleText, 14, 21);
+
+      const bodyRows = simRekapMudawamahExportCache.map((item, idx) => [
+        idx + 1,
+        `${item.name} (${item.roleLabel === 'Santri Mahir' ? 'Santri' : 'Ustadz'})`,
+        `${item.ziyadahCount}x (${item.ziyadahPages} Hal)`,
+        `${item.ulang7Count}x (${item.ulang7Pages} Hal)`,
+        `${item.mutqinCount}x / ${item.mutqinJuz} Juz`,
+        `${item.totalActivitiesCount}x`,
+        `${item.totalPages} Hal`
+      ]);
+
+      doc.autoTable({
+        startY: 26,
+        head: [['Rank', 'Nama Peserta', 'Ziyadah', 'Ulang 7 Hari', 'Mutqin', 'Total Aktivitas', 'Total Effort']],
+        body: bodyRows,
+        styles: { fontSize: 7.5, cellPadding: 2 },
+        headStyles: { fillColor: [15, 118, 110], textColor: 255, fontStyle: 'bold' },
+        columnStyles: {
+          0: { cellWidth: 11, halign: 'center' },
+          5: { halign: 'center', fontStyle: 'bold' },
+          6: { halign: 'right', fontStyle: 'bold' }
+        }
+      });
+
+      const dateStamp = new Date().toISOString().slice(0, 10);
+      doc.save(`Rekap_Mudawamah_Pontren_${dateStamp}.pdf`);
+      showToast("File PDF Rekap Mudawamah berhasil diunduh!");
     }
 
     async function saveAnnouncementSettings() {
